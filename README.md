@@ -10,14 +10,13 @@ The radio has 38 tracks, a track selector, previous/next buttons, play/pause and
 
 ## Development
 
-Requires Node.js 22.13 or newer and pnpm.
+Requires Node.js 22.13 or newer and pnpm. The complete 38-track web audio bank is included.
 
 1. Run `pnpm install --frozen-lockfile`.
-2. Prepare the separately managed game audio with `python3 scripts/prepare-music.py --source-game /path/to/flame-godot` (requires ffmpeg).
-3. Run `python3 scripts/verify-assets.py` (requires ffprobe).
-4. Run `pnpm dev` or `pnpm build`.
+2. Run `pnpm dev` to preview, or `pnpm build:pages` to build the live site.
+3. Commit the updated source and generated `docs/` output together, then push `main`.
 
-The build verifies every generated audio file against the pinned hashes before compiling. Generated music is excluded from Git and must be prepared locally; a complete deployment package includes all 38 files.
+The build verifies every audio file against its pinned hash before compiling and checks the published copies again. To audit codec/duration details, run `python3 scripts/verify-assets.py` with ffprobe installed. The optional `scripts/prepare-music.py` can reproduce the bank from the separately managed game inputs.
 
 ## Logo
 
@@ -31,6 +30,8 @@ The original repository README was the starting point. The working homepage come
 
 ## Hosting and checks
 
-The project builds to static output in `dist`. An optional Sites configuration example is in `.openai/hosting.example.json`; account-specific hosting configuration stays local. No automatic public-deployment workflow is included.
+The active repository is `Toucan-Learn/evansworld`. GitHub Pages serves the generated `docs/` directory from `main`. Publishing uses GitHub’s branch-based Pages build and does not require a separate workflow token. Treat `docs/` as generated output; edit `src/`, `components/`, assets or data, then run `pnpm build:pages`.
+
+Account-specific Sites configuration remains local and is not part of this GitHub Pages release.
 
 TypeScript compilation, the production build, audio hashes, stereo MP3 codecs and all track durations have been checked. Browser interaction and visual QA have not been performed. The optional `configure_galaxy` WebMCP tool is feature-detected; a supported validation context was unavailable.
