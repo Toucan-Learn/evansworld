@@ -19,4 +19,4 @@ Rendering is capped at 24 frames per second and at 560 art pixels wide, pauses w
 
 ## Evan reuse (2026-09-09)
 
-Copied from Harry's committed source at `3f4facaa9de8c692b2e51e7b3552944b77a684d3`. The noise and fallback are byte-identical. Evan adds pointer colour and swirl, a click/touch ripple, keyboard painting, and a 2D interaction fallback. Original galaxy source and attribution remain above.
+Copied from Harry's committed source at `3f4facaa9de8c692b2e51e7b3552944b77a684d3`. The noise and fallback image files are byte-identical. Evan's default palette is brighter ocean blue, sea green and sunlit sand; the static fallback receives a matching CSS colour treatment. Evan adds directional pointer swashes, independent overlapping click/touch bursts, keyboard painting, and a 2D interaction fallback. The initial circular brush was replaced at Joshua's request. Evan's renderer is capped at 30 frames per second; the 24-frame description above records Harry's source. Original galaxy source and attribution remain above.

@@ -2,7 +2,7 @@
 :root {
   font-family: "DM Sans", sans-serif;
   color: #edf4f7;
-  background: #09101c;
+  background: #125266;
   font-synthesis: none;
   color-scheme: dark;
 }
@@ -54,7 +54,9 @@ button:active {
   inset: 0;
   z-index: -2;
   overflow: hidden;
-  background: #0b131e url("../assets/galaxy-still.png") center/cover;
+  background: url("../assets/galaxy-still.png") center/cover,
+    linear-gradient(130deg, #166181, #3e9a8d 52%, #dcce91);
+  background-blend-mode: screen;
   image-rendering: pixelated;
 }
 .galaxy-sky {
@@ -78,7 +80,7 @@ button:active {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg, #050d192e, transparent 70%);
+  background: linear-gradient(90deg, #07313e66, transparent 65%);
 }
 header {
   padding: 30px 40px;
@@ -124,7 +126,7 @@ header > * {
     0.875rem "Space Grotesk",
     sans-serif;
   letter-spacing: 0.22em;
-  color: #bbd1dc;
+  color: #d3ece5;
   margin: 0 0 25px;
 }
 .greeting h1 {
@@ -136,7 +138,7 @@ header > * {
   text-shadow: 0 3px 30px #07101acc;
 }
 .greeting em {
-  color: #a9e9d7;
+  color: #fff0b8;
   font-style: normal;
 }
 .instruction {
@@ -148,7 +150,7 @@ header > * {
 }
 .instruction span {
   display: block;
-  color: #a6bdcd;
+  color: #c7e3df;
   font-size: 0.875rem;
 }
 .sky-tools {

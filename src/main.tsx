@@ -103,7 +103,7 @@ function App() {
         <button
           onClick={() => {
             setCalm(false);
-            setBurst(burst + 1);
+            setBurst((count) => count + 1);
           }}
         >
           <Sparkles size={20} />

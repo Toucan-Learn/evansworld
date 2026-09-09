@@ -4,7 +4,7 @@ Evan’s Universe: an interactive pixel-galaxy homepage with a Masayoshi Takanak
 
 ## Play
 
-Move a mouse or draw on the sky to leave colourful trails. Click or tap for a ripple. Use **Colour** to switch palettes, **Star burst** for a larger ripple, and **Calm mode** to stop the sky. Keyboard users can focus the galaxy, paint with the arrow keys and trigger a burst with Space or Enter. System reduced-motion preferences are respected.
+The default sky uses ocean blue, sea green and sunlit sand colours. Move a mouse or draw on the sky to sweep a broad swash through the pixels. Click or tap for a ripple; each burst keeps its own position and lifetime, so new bursts do not reset existing rings. Use **Colour** to change the swash colour, **Star burst** for a larger ripple, and **Calm mode** to stop the sky. Keyboard users can focus the galaxy, paint with the arrow keys and trigger a burst with Space or Enter. System reduced-motion preferences are respected.
 
 The radio has 38 tracks, a track selector, previous/next buttons, play/pause and volume. Music begins only after a user action. Only the volume preference is saved in the browser.
 
@@ -16,7 +16,7 @@ Requires Node.js 22.13 or newer and pnpm. The complete 38-track web audio bank i
 2. Run `pnpm dev` to preview, or `pnpm build:pages` to build the live site.
 3. Commit the updated source and generated `docs/` output together, then push `main`.
 
-The build verifies every audio file against its pinned hash before compiling and checks the published copies again. To audit codec/duration details, run `python3 scripts/verify-assets.py` with ffprobe installed. The optional `scripts/prepare-music.py` can reproduce the bank from the separately managed game inputs.
+Run `pnpm test` to check overlapping burst lifetimes and rapid input. The build verifies every audio file against its pinned hash before compiling and checks the published copies again. To audit codec/duration details, run `python3 scripts/verify-assets.py` with ffprobe installed. The optional `scripts/prepare-music.py` can reproduce the bank from the separately managed game inputs.
 
 ## Logo
 
