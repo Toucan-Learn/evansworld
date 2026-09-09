@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { originalFragmentSource, vertexSource } from "./galaxy-shaders";
 import { MAX_RIPPLES, RIPPLE_SPEED, RIPPLE_TAIL, RipplePool, rippleOpacity } from "./ripples";
+import type { SkyPreset } from "./sky-presets";
 
 // Keep Harry's geometry, ordered dithering and noise, with Evan's Earth palette.
 const fragmentSource = originalFragmentSource
@@ -74,16 +75,26 @@ const inks = [
   [0.73, 0.46, 1],
   [1, 0.66, 0.28],
 ];
-export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number; burst: number }) {
+export function Galaxy({
+  calm,
+  colour,
+  burst,
+  preset,
+}: {
+  calm: boolean;
+  colour: number;
+  burst: number;
+  preset: SkyPreset;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const state = useRef({ calm, colour, burst });
-  state.current = { calm, colour, burst };
+  const state = useRef({ calm, colour, burst, preset });
+  state.current = { calm, colour, burst, preset };
   const refresh = useRef<(() => void) | null>(null);
   const [keyboardHint, setKeyboardHint] = useState(false);
   useEffect(() => {
     refresh.current?.();
-  }, [calm, colour, burst]);
+  }, [calm, colour, burst, preset]);
   useEffect(() => {
     const canvas = canvasRef.current!,
       surface = surfaceRef.current!;
@@ -112,14 +123,18 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
     const shaders: WebGLShader[] = [];
     const loc: Record<string, WebGLUniformLocation | null> = {};
     let usable = false;
-    function initFallback() {
-      canvas.style.opacity = "0";
+    function ensureOverlay() {
+      if (fallback) return;
       fallback = document.createElement("canvas");
       fallback.className = "galaxy-sky";
       fallback.style.cssText = "position:absolute;inset:0;opacity:1";
-      canvas.parentElement!.appendChild(fallback);
+      fallback.width = canvas.width;
+      fallback.height = canvas.height;
+      canvas.after(fallback);
       ctx = fallback.getContext("2d");
-      loaded = true;
+    }
+    function animatedSky() {
+      return usable && loaded && state.current.preset === "earth";
     }
     if (gl) {
       try {
@@ -170,9 +185,9 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
           loc[name] = gl.getUniformLocation(program, name);
         usable = true;
       } catch {
-        initFallback();
+        ensureOverlay();
       }
-    } else initFallback();
+    } else ensureOverlay();
     const noise = new Image();
     if (usable) {
       noise.onload = () => {
@@ -180,23 +195,25 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
         gl!.bindTexture(gl!.TEXTURE_2D, texture);
         gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, noise);
         loaded = true;
-        canvas.style.opacity = "1";
         resize();
         wake();
       };
       noise.onerror = () => {
         if (disposed) return;
         usable = false;
-        initFallback();
+        ensureOverlay();
         resize();
         wake();
       };
       noise.src = new URL("../assets/galaxy-noise.png", import.meta.url).href;
     }
     function draw() {
-      if (disposed || document.hidden || !loaded) return;
+      if (disposed || document.hidden) return;
       const ink = inks[state.current.colour];
-      if (usable && gl) {
+      const animate = animatedSky();
+      canvas.style.opacity = animate ? "1" : "0";
+      if (animate && gl) {
+        if (fallback) fallback.style.opacity = "0";
         const values = new Float32Array(48);
         const swashes = new Float32Array(24);
         dots.slice(-12).forEach((p, i) => {
@@ -216,7 +233,10 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
         gl.uniform3fv(loc["ripples[0]"], rippleValues);
         gl.uniform1i(loc.rippleCount, ripples.active.length);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-      } else if (ctx && fallback) {
+      } else {
+        ensureOverlay();
+        if (!ctx || !fallback) return;
+        fallback.style.opacity = "1";
         ctx.clearRect(0, 0, fallback.width, fallback.height);
         for (const p of dots) {
           const life = Math.max(0, 1 - (elapsed - p.born) / 1.5);
@@ -262,7 +282,8 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
         ripples.expire(elapsed);
         draw();
       }
-      if (usable || dots.length || ripples.active.length) frame = requestAnimationFrame(tick);
+      if (animatedSky() || dots.length || ripples.active.length)
+        frame = requestAnimationFrame(tick);
     }
     function wake() {
       while (lastBurst < state.current.burst) {
@@ -280,7 +301,13 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
         last = 0;
       }
       draw();
-      if (!disposed && loaded && !document.hidden && !state.current.calm && !frame) {
+      if (
+        !disposed &&
+        !document.hidden &&
+        !state.current.calm &&
+        !frame &&
+        (animatedSky() || dots.length || ripples.active.length)
+      ) {
         last = 0;
         frame = requestAnimationFrame(tick);
       }
@@ -352,7 +379,7 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
     function lost(event: Event) {
       event.preventDefault();
       usable = false;
-      if (!fallback) initFallback();
+      ensureOverlay();
       resize();
       wake();
     }

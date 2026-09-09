@@ -70,7 +70,7 @@ button:active {
   z-index: -2;
   overflow: hidden;
   background:
-    url("../assets/galaxy-still.png") center/cover,
+    url("../assets/loading-pixel-sky.png") center/cover,
     linear-gradient(130deg, #166181, #3e9a8d 52%, #dcce91);
   background-blend-mode: screen;
   image-rendering: pixelated;
@@ -110,6 +110,37 @@ header {
 }
 header > * {
   pointer-events: auto;
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sky-preset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding-left: 12px;
+  border: 1px solid #b0cee32e;
+  border-radius: 14px;
+  background: #122333d9;
+  font-size: 0.875rem;
+}
+.sky-preset > span {
+  color: #bdd8d8;
+}
+.sky-preset select {
+  min-width: 0;
+  min-height: 46px;
+  max-width: 130px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 8px;
+  color: inherit;
+  background: #122333;
+  font: inherit;
+  cursor: pointer;
 }
 .wordmark {
   display: flex;
@@ -272,7 +303,21 @@ header > * {
       max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   }
   header {
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+  }
+  .header-controls {
+    display: contents;
+  }
+  .sky-preset {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .calm-toggle {
+    grid-column: 2;
+    grid-row: 1;
   }
   .wordmark {
     font-size: 0.75rem;
@@ -577,6 +622,22 @@ header > * {
 
 /* Phones in landscape keep the radio beside the play controls. */
 @media (max-height: 500px) and (min-width: 500px) {
+  header {
+    display: flex;
+  }
+  .header-controls {
+    display: flex;
+    gap: 6px;
+  }
+  .sky-preset {
+    padding-left: 0;
+  }
+  .sky-preset > span {
+    display: none;
+  }
+  .sky-preset select {
+    max-width: 110px;
+  }
   .universe {
     grid-template-columns: minmax(0, 1fr) min(270px, 48vw);
     grid-template-rows: auto minmax(0, 1fr) auto;

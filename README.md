@@ -6,7 +6,9 @@ Evan’s Universe: an interactive pixel-galaxy homepage with a Masayoshi Takanak
 
 The default sky uses ocean blue, sea green and sunlit sand colours. Move a mouse or draw on the sky to sweep a broad swash through the pixels. Click or tap for a ripple; each burst keeps its own position and lifetime, so new bursts do not reset existing rings. Use **Colour** to change the swash colour, **Star burst** for a larger ripple, and **Calm mode** to stop the sky. Keyboard users can focus the galaxy, paint with the arrow keys and trigger a burst with Space or Enter. System reduced-motion preferences are respected.
 
-The radio has 38 tracks, a track selector, previous/next buttons, play/pause and volume. Music begins only after a user action. Only the volume preference is saved in the browser.
+Use the **Sky** selector to choose **Earth sky** (the animated background) or **Pixel sky** (the exact pixel artwork and colour treatment shown during loading). Both support swashes, overlapping ripples and Calm mode. The original loading artwork is preserved in `assets/loading-pixel-sky.png`; its hash and colour recipe are recorded in `assets/LOADING-SKY-PRESET.md`.
+
+The radio has 38 tracks, a track selector, previous/next buttons, play/pause and volume. Music begins only after a user action. The volume and sky-preset preferences are saved locally in the browser.
 
 The homepage fits the current viewport without scrolling. The layout keeps the sky controls and radio visible, rearranges them for phones in landscape, and reduces decorative text on short screens. Every ripple travels through the farthest corner before fading; its lifetime follows the viewport size and the point where it began.
 
