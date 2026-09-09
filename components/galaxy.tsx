@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { originalFragmentSource, vertexSource } from "./galaxy-shaders";
-import { MAX_RIPPLES, RIPPLE_LIFETIME, RipplePool } from "./ripples";
+import { MAX_RIPPLES, RIPPLE_SPEED, RIPPLE_TAIL, RipplePool, rippleOpacity } from "./ripples";
 
 // Keep Harry's geometry, ordered dithering and noise, with Evan's Earth palette.
 const fragmentSource = originalFragmentSource
@@ -48,7 +48,11 @@ uniform int rippleCount;`,
   if(i>=rippleCount){break;}
   vec2 delta=(uv-ripples[i].xy)*vec2(grid.x/grid.y,1.0);
   float age=ripples[i].z;
-  float wave=exp(-pow((length(delta)-age*.32)*60.0,2.0))*max(0.0,1.0-age/${RIPPLE_LIFETIME});
+  vec2 farEdge=max(ripples[i].xy,vec2(1.0)-ripples[i].xy)*vec2(grid.x/grid.y,1.0);
+  float reach=length(farEdge);
+  float radius=age*${RIPPLE_SPEED};
+  float fade=1.0-smoothstep(reach,reach+${RIPPLE_TAIL},radius);
+  float wave=exp(-pow((length(delta)-radius)*60.0,2.0))*fade;
   ring+=wave;
   rippleWarp+=normalize(delta+vec2(.0001))*wave*.025;
  }
@@ -232,13 +236,14 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
           }
         }
         for (const ripple of ripples.active) {
-          const age = elapsed - ripple.born;
-          for (let i = 0; i < 40; i++) {
-            const a = (i * Math.PI) / 20;
-            ctx.fillStyle = `rgba(${ink.map((v) => Math.round(v * 255)).join(",")},${(1 - age / RIPPLE_LIFETIME) * 0.8})`;
+          const radius = (elapsed - ripple.born) * RIPPLE_SPEED * fallback.height;
+          const points = Math.max(40, Math.ceil(Math.PI * radius));
+          ctx.fillStyle = `rgba(${ink.map((v) => Math.round(v * 255)).join(",")},${rippleOpacity(ripple, elapsed, ripples.aspect) * 0.8})`;
+          for (let i = 0; i < points; i++) {
+            const a = (i * Math.PI * 2) / points;
             ctx.fillRect(
-              Math.floor(ripple.x * fallback.width + Math.cos(a) * age * fallback.height * 0.32),
-              Math.floor(ripple.y * fallback.height + Math.sin(a) * age * fallback.height * 0.32),
+              Math.floor(ripple.x * fallback.width + Math.cos(a) * radius),
+              Math.floor(ripple.y * fallback.height + Math.sin(a) * radius),
               2,
               2,
             );
@@ -281,9 +286,11 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
       }
     }
     function resize() {
-      const scale = Math.max(4, window.innerWidth / 560);
-      canvas.width = Math.max(1, Math.floor(window.innerWidth / scale));
-      canvas.height = Math.max(1, Math.floor(window.innerHeight / scale));
+      const box = surface.getBoundingClientRect();
+      const scale = Math.max(4, box.width / 560);
+      canvas.width = Math.max(1, Math.floor(box.width / scale));
+      canvas.height = Math.max(1, Math.floor(box.height / scale));
+      ripples.aspect = canvas.width / canvas.height;
       if (fallback) {
         fallback.width = canvas.width;
         fallback.height = canvas.height;
@@ -355,6 +362,8 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
     surface.addEventListener("pointermove", point);
     surface.addEventListener("pointerdown", point);
     surface.addEventListener("keydown", keys);
+    const viewport = new ResizeObserver(resize);
+    viewport.observe(surface);
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", wake);
     canvas.addEventListener("webglcontextlost", lost);
@@ -367,6 +376,7 @@ export function Galaxy({ calm, colour, burst }: { calm: boolean; colour: number;
       surface.removeEventListener("pointermove", point);
       surface.removeEventListener("pointerdown", point);
       surface.removeEventListener("keydown", keys);
+      viewport.disconnect();
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", wake);
       canvas.removeEventListener("webglcontextlost", lost);

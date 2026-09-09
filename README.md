@@ -8,6 +8,8 @@ The default sky uses ocean blue, sea green and sunlit sand colours. Move a mouse
 
 The radio has 38 tracks, a track selector, previous/next buttons, play/pause and volume. Music begins only after a user action. Only the volume preference is saved in the browser.
 
+The homepage fits the current viewport without scrolling. The layout keeps the sky controls and radio visible, rearranges them for phones in landscape, and reduces decorative text on short screens. Every ripple travels through the farthest corner before fading; its lifetime follows the viewport size and the point where it began.
+
 ## Development
 
 Requires Node.js 22.13 or newer and pnpm. The complete 38-track web audio bank is included.

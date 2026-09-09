@@ -9,8 +9,14 @@
 * {
   box-sizing: border-box;
 }
-body {
+html,
+body,
+#root {
   margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 button,
 a {
@@ -45,16 +51,26 @@ button:active {
 }
 .universe {
   isolation: isolate;
-  min-height: 100svh;
+  height: 100dvh;
+  width: 100%;
   position: relative;
   overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(318px, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(10px, 2dvh, 20px);
+  padding: max(clamp(16px, 3dvh, 32px), env(safe-area-inset-top))
+    max(clamp(20px, 3vw, 40px), env(safe-area-inset-right))
+    max(clamp(16px, 3dvh, 32px), env(safe-area-inset-bottom))
+    max(clamp(20px, 3vw, 40px), env(safe-area-inset-left));
 }
 .galaxy-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: -2;
   overflow: hidden;
-  background: url("../assets/galaxy-still.png") center/cover,
+  background:
+    url("../assets/galaxy-still.png") center/cover,
     linear-gradient(130deg, #166181, #3e9a8d 52%, #dcce91);
   background-blend-mode: screen;
   image-rendering: pixelated;
@@ -67,7 +83,7 @@ button:active {
   opacity: 0;
 }
 .galaxy-touch {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: -1;
   touch-action: none;
@@ -83,7 +99,9 @@ button:active {
   background: linear-gradient(90deg, #07313e66, transparent 65%);
 }
 header {
-  padding: 30px 40px;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -114,10 +132,20 @@ header > * {
   align-items: center;
   padding: 0 17px;
   font-size: 0.875rem;
+  flex-shrink: 0;
 }
 .greeting {
-  margin: clamp(60px, 13vh, 140px) 0 250px;
-  padding: 0 8vw;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: stretch;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+  min-width: 0;
+  margin: 0;
+  padding: 0 4vw;
   pointer-events: none;
   max-width: 700px;
 }
@@ -127,11 +155,11 @@ header > * {
     sans-serif;
   letter-spacing: 0.22em;
   color: #d3ece5;
-  margin: 0 0 25px;
+  margin: 0 0 clamp(10px, 2dvh, 25px);
 }
 .greeting h1 {
   font:
-    500 clamp(3.2rem, 6vw, 6rem)/1.08 "Space Grotesk",
+    500 clamp(2rem, min(6vw, 8dvh), 6rem)/1.08 "Space Grotesk",
     sans-serif;
   letter-spacing: -0.055em;
   margin: 0;
@@ -145,7 +173,7 @@ header > * {
   font-size: 1.125rem;
   line-height: 1.7;
   color: #d0dee5;
-  margin-top: 28px;
+  margin: clamp(10px, 2dvh, 28px) 0 0;
   text-shadow: 0 2px 12px #06101a;
 }
 .instruction span {
@@ -154,10 +182,10 @@ header > * {
   font-size: 0.875rem;
 }
 .sky-tools {
-  position: absolute;
-  bottom: 48px;
-  left: 50%;
-  transform: translateX(-50%);
+  grid-column: 2;
+  grid-row: 3;
+  align-self: end;
+  justify-self: center;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -198,9 +226,10 @@ header > * {
   background: #ffc078;
 }
 .quiet-label {
-  position: absolute;
-  bottom: 59px;
-  left: 40px;
+  grid-column: 1;
+  grid-row: 3;
+  align-self: end;
+  margin: 0 0 18px;
   font:
     0.75rem "Space Grotesk",
     sans-serif;
@@ -220,20 +249,30 @@ header > * {
   border: 0;
 }
 @media (max-width: 1000px) {
+  .universe {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
   .quiet-label {
     display: none;
   }
   .sky-tools {
-    left: 40px;
-    transform: none;
+    grid-column: 1;
+    justify-self: start;
   }
   .greeting {
-    padding-left: 7vw;
+    padding-left: 2vw;
   }
 }
 @media (max-width: 650px) {
+  .universe {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 10px;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
   header {
-    padding: 20px;
+    gap: 10px;
   }
   .wordmark {
     font-size: 0.75rem;
@@ -247,23 +286,18 @@ header > * {
     padding: 0 11px;
   }
   .greeting {
-    margin: 50px 0 390px;
-    padding: 0 26px;
+    padding: 0 8px;
   }
   .greeting h1 {
-    font-size: 3.5rem;
+    font-size: clamp(2rem, min(12vw, 8dvh), 3.5rem);
   }
   .greeting > p:first-child {
     font-size: 0.75rem;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   .instruction {
     font-size: 1rem;
-    max-width: 245px;
-  }
-  .sky-tools {
-    bottom: calc(260px + env(safe-area-inset-bottom));
-    left: 22px;
+    line-height: 1.5;
   }
   .sky-tools button {
     padding: 0 12px;
@@ -277,7 +311,7 @@ header > * {
 }
 .keyboard-hint {
   position: absolute;
-  bottom: 118px;
+  top: 90px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.875rem;
@@ -288,10 +322,13 @@ header > * {
   z-index: 4;
 }
 .radio {
-  position: absolute;
-  right: 32px;
-  bottom: 32px;
+  grid-column: 3;
+  grid-row: 3;
+  align-self: end;
+  justify-self: end;
   width: 318px;
+  max-width: 100%;
+  min-width: 0;
   padding: 16px 18px 13px;
   border: 1px solid #96b6d13b;
   border-radius: 22px;
@@ -439,18 +476,17 @@ header > * {
 }
 @media (max-width: 1000px) {
   .radio {
-    right: 22px;
-    bottom: 32px;
+    grid-column: 2;
     width: 300px;
   }
 }
 @media (max-width: 650px) {
   .radio {
-    width: calc(100% - 44px);
+    grid-column: 1;
+    grid-row: 4;
+    justify-self: start;
+    width: 100%;
     max-width: 355px;
-    left: 22px;
-    right: auto;
-    bottom: calc(22px + env(safe-area-inset-bottom));
     padding: 12px 16px;
   }
   .radio-top {
@@ -466,19 +502,12 @@ header > * {
     margin-top: 5px;
   }
   .keyboard-hint {
-    bottom: 330px;
-    left: 22px;
+    top: 70px;
+    left: 16px;
     transform: none;
     max-width: calc(100% - 44px);
   }
 }
-@media (min-width: 651px) and (max-width: 780px) {
-  .sky-tools {
-    left: 22px;
-    bottom: 290px;
-  }
-}
-
 /* Evan's pixel portrait keeps its original transparent artwork. */
 .brand-portrait {
   width: 72px;
@@ -497,5 +526,139 @@ header > * {
   .brand-portrait {
     width: 56px;
     height: 56px;
+  }
+}
+
+/* Compact decoration before reducing the space available for play and controls. */
+@media (max-height: 700px) {
+  .greeting > p:first-child,
+  .instruction span,
+  .radio-intro > span {
+    display: none;
+  }
+  .brand-portrait {
+    width: 48px;
+    height: 48px;
+  }
+  .greeting h1 {
+    font-size: clamp(1.75rem, 7dvh, 3.25rem);
+  }
+  .instruction {
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-top: 10px;
+  }
+  .radio {
+    padding: 10px 14px;
+  }
+  .radio-top {
+    margin: 0 0 5px;
+  }
+  .radio-character,
+  .radio-character img {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+  }
+  .radio-intro p {
+    margin-bottom: 3px;
+  }
+  .radio-intro h2 {
+    margin: 0;
+  }
+  .radio-status {
+    margin-top: 3px;
+  }
+  .sky-tools button,
+  .calm-toggle {
+    min-height: 44px;
+  }
+}
+
+/* Phones in landscape keep the radio beside the play controls. */
+@media (max-height: 500px) and (min-width: 500px) {
+  .universe {
+    grid-template-columns: minmax(0, 1fr) min(270px, 48vw);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .greeting {
+    grid-column: 1;
+    padding: 0;
+  }
+  .greeting h1 {
+    font-size: clamp(1.5rem, 7dvh, 2rem);
+  }
+  .sky-tools {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+    padding: 4px;
+    gap: 2px;
+  }
+  .sky-tools button {
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .radio {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    width: 100%;
+  }
+  .radio-bottom {
+    gap: 8px;
+  }
+  .volume input {
+    width: 54px;
+  }
+  .quiet-label {
+    display: none;
+  }
+}
+
+@media (max-height: 430px) {
+  .instruction {
+    display: none;
+  }
+}
+
+@media (max-height: 450px) and (max-width: 499px) {
+  .universe {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .greeting {
+    display: none;
+  }
+  .sky-tools {
+    grid-row: 2;
+  }
+  .radio {
+    grid-row: 3;
+  }
+}
+
+/* Longer track names or larger text must not push the greeting into controls. */
+@container (max-height: 210px) {
+  .greeting > p:first-child,
+  .instruction span {
+    display: none;
+  }
+  .greeting h1 {
+    font-size: min(3rem, 30cqh);
+  }
+}
+@container (max-height: 135px) {
+  .instruction {
+    display: none;
+  }
+  .greeting h1 {
+    font-size: min(2.5rem, 32cqh);
+  }
+}
+@container (max-height: 70px) {
+  .greeting h1 {
+    display: none;
   }
 }
