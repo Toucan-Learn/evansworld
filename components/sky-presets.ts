@@ -1,6 +1,9 @@
 export const SKY_PRESETS = [
   { id: "earth", label: "Earth sky" },
   { id: "pixel", label: "Pixel sky" },
+  { id: "rocket", label: "Rocket flight" },
+  { id: "sand", label: "Sand" },
+  { id: "water", label: "Water" },
 ] as const;
 
 export type SkyPreset = (typeof SKY_PRESETS)[number]["id"];

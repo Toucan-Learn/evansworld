@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { Radio } from "../components/radio";
 import { Sparkles, Palette, Moon, Sun } from "lucide-react";
+import { PlaySkies } from "../components/play-skies";
 import { Galaxy } from "../components/galaxy";
 import {
   SKY_PRESETS,
@@ -13,10 +14,10 @@ import {
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
 function App() {
-  const [page, setPage] = useState(() => location.hash === '#games' ? 'games' : 'home');
+  const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
-    const navigate = () => {setPage(location.hash === '#games' ? 'games' : 'home');setPlaying(false);};
+    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');setPlaying(false);};
     addEventListener('hashchange', navigate);
     return () => removeEventListener('hashchange', navigate);
   }, []);
@@ -78,7 +79,7 @@ function App() {
                 (value.preset !== undefined && !isSkyPreset(value.preset))
               )
                 throw Error(
-                  "Use calm: boolean, colour: 0, 1 or 2, and optional preset: earth or pixel",
+                  "Use calm: boolean, colour: 0, 1 or 2, and a listed background preset",
                 );
               flushSync(() => {
                 setCalm(value.calm as boolean);
@@ -98,9 +99,12 @@ function App() {
     } catch {}
     return () => life.abort();
   }, []);
+  const activePreset = page === 'rocket' ? 'rocket' : preset;
+  const classicSky = activePreset === 'earth' || activePreset === 'pixel';
   return (
     <main className={`universe${playing ? " is-playing-game" : ""}`}>
-      <Galaxy calm={calm} colour={colour} burst={burst} preset={preset} />
+      <div style={{ display: classicSky ? "contents" : "none" }}><Galaxy calm={calm || !classicSky} colour={colour} burst={burst} preset={preset} /></div>
+      {!classicSky && <PlaySkies preset={activePreset} calm={calm} colour={colour} burst={burst} />}
       <header>
         <a className="wordmark" href="#home" aria-label="Evan's Universe home">
           <img className="brand-portrait" src={brandLogo} alt="" width={72} height={72} />
@@ -109,6 +113,7 @@ function App() {
         <nav className="site-tabs" aria-label="Main navigation">
           <a href="#home" aria-current={page === 'home' ? 'page' : undefined}>Home</a>
           <a href="#games" onClick={() => setPlaying(false)} aria-current={page === 'games' ? 'page' : undefined}>Games</a>
+          <a href="#rocket" onClick={() => setPreset("rocket")} aria-current={page === 'rocket' ? 'page' : undefined}>Rocket</a>
         </nav>
         <div className="header-controls">
           <label className="sky-preset" htmlFor="sky-preset">
@@ -116,9 +121,9 @@ function App() {
             <select
               id="sky-preset"
               aria-label="Background preset"
-              value={preset}
+              value={activePreset}
               onChange={(event) => {
-                if (isSkyPreset(event.target.value)) setPreset(event.target.value);
+                if (isSkyPreset(event.target.value)) { setPreset(event.target.value); if (page === 'rocket') location.hash = 'home'; }
               }}
             >
               {SKY_PRESETS.map((sky) => (
@@ -134,7 +139,7 @@ function App() {
           </button>
         </div>
       </header>
-      {page === 'home' ? <section className="greeting">
+      {page === 'rocket' || (page === 'home' && !classicSky) ? null : page === 'home' ? <section className="greeting">
         <p>HELLO, EXPLORER</p>
         <h1>
           A little space.
@@ -181,7 +186,7 @@ function App() {
           }}
         >
           <Sparkles size={20} />
-          <span>Star burst</span>
+          <span>{activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
         </button>
       </div>
       <Radio />
