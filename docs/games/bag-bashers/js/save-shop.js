@@ -1,7 +1,7 @@
 /* Versioned checkpoints are stored locally, never sent to a server. */
 function snapshot(phase='play'){return {version:2,phase,level,money,strength,gloveLevel,shoeLevel,gloveSkin,bagSkin,characterSkin,ownedSkins:[...ownedSkins],armorLevel,jumpLevel,shields,scanner};}
 function validSave(s){return s&&s.version===2&&['play','shop','win'].includes(s.phase)&&Number.isInteger(s.level)&&s.level>=1&&s.level<=MAX_LEVEL&&['money','strength','gloveLevel','shoeLevel','gloveSkin','bagSkin','characterSkin','armorLevel','jumpLevel','shields'].every(k=>Number.isSafeInteger(s[k])&&s[k]>=0)&&s.gloveLevel>=1&&s.shoeLevel<=5&&s.gloveSkin<5&&s.bagSkin<5&&s.characterSkin<CHARACTER_SKINS.length&&s.armorLevel<=5&&s.jumpLevel<=3&&s.shields<=5&&Array.isArray(s.ownedSkins)&&s.ownedSkins.every(k=>Number.isInteger(k)&&k>=0&&k<CHARACTER_SKINS.length)&&s.ownedSkins.includes(s.characterSkin)&&typeof s.scanner==='boolean';}
-function restoreSnapshot(s){({level,money,strength,gloveLevel,shoeLevel,gloveSkin,bagSkin,characterSkin,armorLevel,jumpLevel,shields,scanner}=s);ownedSkins=[...s.ownedSkins];}
+function restoreSnapshot(s){({level,money,strength,gloveLevel,shoeLevel,gloveSkin,bagSkin,characterSkin,armorLevel,jumpLevel,shields,scanner}=s);ownedSkins=[...s.ownedSkins];strength=Math.min(strength,CONFIG.maxStrength);gloveLevel=Math.min(gloveLevel,CONFIG.maxGloveLevel);shoeLevel=Math.min(shoeLevel,CONFIG.maxShoeLevel);jumpLevel=Math.min(jumpLevel,CONFIG.maxJumpLevel);armorLevel=Math.min(armorLevel,CONFIG.maxArmorLevel);scanner=false;}
 function saveCheckpoint(phase='play'){
   checkpoint=snapshot(phase);
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(checkpoint));document.getElementById('continueBtn').hidden=false;}
@@ -12,11 +12,10 @@ function continueGame(){const s=readSave()||checkpoint;if(!s)return;restoreSnaps
 function extraShopItems(){
   const armorCost=500*(armorLevel+1), jumpCost=400*(jumpLevel+1);
   const items=[
-    {t:'Feather Armour '+armorLevel+'/5',d:'Take 3 less damage per level from boss attacks.',c:armorCost,can:armorLevel<5&&money>=armorCost,act:()=>{money-=armorCost;armorLevel++;}},
-    {t:'Spring Boots '+jumpLevel+'/3',d:'Jump higher to reach bags and dodge eggs.',c:jumpCost,can:jumpLevel<3&&money>=jumpCost,act:()=>{money-=jumpCost;jumpLevel++;}},
+    {t:'Feather Armour '+armorLevel+'/2',d:'Take 3 less damage per level from boss attacks.',c:armorCost,can:armorLevel<CONFIG.maxArmorLevel&&money>=armorCost,act:()=>{money-=armorCost;armorLevel++;}},
+    {t:'Spring Boots '+jumpLevel+'/1',d:'Jump higher to reach bags and dodge eggs.',c:jumpCost,can:jumpLevel<CONFIG.maxJumpLevel&&money>=jumpCost,act:()=>{money-=jumpCost;jumpLevel++;}},
     {t:'Bomb Shield ('+shields+'/5)',d:'Absorbs one bomb. Carry up to five.',c:750,can:money>=750&&shields<5,act:()=>{money-=750;shields++;}},
-    {t:'Bag Scanner'+(scanner?' ✓':''),d:'Permanently reveals chicken bag contents.',c:2500,can:!scanner&&money>=2500,act:()=>{money-=2500;scanner=true;}},
-    {t:'Power Training',d:'+25 strength. Adds 5 punch damage.',c:600,can:money>=600,act:()=>{money-=600;strength+=25;}},
+    {t:'Power Training',d:'+10 strength. Maximum 50.',c:600,can:money>=600&&strength<CONFIG.maxStrength,act:()=>{money-=600;strength=Math.min(CONFIG.maxStrength,strength+10);}},
   ];
   CHARACTER_SKINS.forEach((skin,i)=>{const owned=ownedSkins.includes(i);items.push({t:skin.name+(characterSkin===i?' • ON':''),d:owned?'Owned outfit. Switch for free.':'Unlock a new character outfit.',c:owned?0:skin.cost,can:characterSkin!==i&&money>=(owned?0:skin.cost),act:()=>{if(!owned){money-=skin.cost;ownedSkins.push(i);}characterSkin=i;}});});
   return items;

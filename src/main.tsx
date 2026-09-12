@@ -154,12 +154,12 @@ function App() {
           <div className="game-toolbar">
             <button onClick={() => setPlaying(false)}>← Games</button>
             <h1>Bag Bashers</h1>
-            <a className="open-game-link" href={`${import.meta.env.BASE_URL}games/bag-bashers/index.html`} target="_blank" rel="noopener">Open game ↗</a>
+            <a className="open-game-link" href={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?v=3`} target="_blank" rel="noopener">Open game ↗</a>
           </div>
           {!gameLoaded && <p className="game-loading" role="status">Loading game…</p>}
           <iframe
             className="game-frame"
-            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?embed=1`}
+            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?embed=1&v=3`}
             title="Bag Bashers"
             allow="fullscreen"
             allowFullScreen

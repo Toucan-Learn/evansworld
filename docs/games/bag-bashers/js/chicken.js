@@ -52,13 +52,12 @@ function drawChickenBag(b,cx){
   poly([[x-13,y-26],[x-15,y-40],[x-6,y-33],[x,y-45],[x+6,y-33],[x+14,y-40],[x+12,y-26]],'#edc85d','#393044');
   oval(x-7,y-9,4,6,'#eee8d0');oval(x+7,y-9,4,6,'#eee8d0');px(x-7,y-11,2,5,'#252337');px(x+7,y-11,2,5,'#252337');
   ctx.textAlign='center';ctx.font='bold 10px Courier New';ctx.fillStyle='#292538';
-  ctx.fillText(b.type==='jackpot'?'$50K':(scanner||LEVELS[level-1].jackpot)?({bomb:'BOMB',money:'$',strength:'STR',poison:'☠'}[b.type]):'?',x,y+9);
-  if(b.type==='jackpot'){ctx.strokeStyle=COL.gold;ctx.lineWidth=3;ctx.strokeRect(x-28,y-47,56,67);}
+  ctx.fillText('?',x,y+9);
   if(b.hp<b.maxHp){px(x-20,y-52,40,4,'#232239');px(x-20,y-52,40*Math.max(0,b.hp/b.maxHp),4,'#f4ce64');}
   if(nearestBag()===b){ctx.strokeStyle='#fff0bd';ctx.lineWidth=1;ctx.strokeRect(x-29,y-48,58,69);}
 }
 function buildChickenBoss(){
-  tyson={chicken:true,x:W-135,hp:900,maxHp:900,st:'idle',t:1.5,dir:-1,hurt:0,reach:92,cycle:0};
+  tyson={chicken:true,x:W-135,hp:1200,maxHp:1200,st:'idle',t:.6,dir:-1,hurt:0,reach:92,cycle:0};
   plats=[{x:155,y:GROUND-88,w:100},{x:365,y:GROUND-88,w:95}];
   bags=[];
 }
@@ -66,18 +65,18 @@ function hurtPlayer(damage){health-=Math.max(5,damage-armorLevel*3);regenTimer=2
 function updateChickenBoss(dt){
   const t=tyson;t.t-=dt;t.hurt=Math.max(0,t.hurt-dt);bossClock+=dt;t.dir=player.x<t.x?-1:1;
   if(t.st==='idle'){
-    if(Math.abs(player.x-t.x)>115)t.x+=Math.sign(player.x-t.x)*45*dt;
-    if(t.t<=0){t.cycle++;t.st=t.cycle%3===0?'peckWarning':'eggWarning';t.high=t.cycle%2===0;t.t=.85;}
+    if(Math.abs(player.x-t.x)>115)t.x+=Math.sign(player.x-t.x)*85*dt;
+    if(t.t<=0){t.cycle++;t.st=t.cycle%3===0?'peckWarning':'eggWarning';t.high=t.cycle%2===0;t.t=t.hp<t.maxHp/2?.45:.6;}
   }else if(t.st==='eggWarning'&&t.t<=0){
-    eggs.push({x:t.x+t.dir*48,y:GROUND-(t.high?112:25),vx:t.dir*255,life:4,spin:0});t.st='recover';t.t=.8;beep(380,.06);
+    eggs.push({x:t.x+t.dir*48,y:GROUND-(t.high?112:25),vx:t.dir*(t.hp<t.maxHp/2?365:310),life:4,spin:0});t.st='recover';t.t=.45;beep(380,.06);
   }else if(t.st==='peckWarning'&&t.t<=0){t.st='peck';t.t=.24;t.hitDone=false;
   }else if(t.st==='peck'){
-    if(!t.hitDone&&Math.abs(player.x-t.x)<155&&player.y+player.h/2>GROUND-63){t.hitDone=true;hurtPlayer(27);}
-    if(t.t<=0){t.st='recover';t.t=1.1;}
-  }else if(t.st==='recover'&&t.t<=0){t.st='idle';t.t=.8;}
+    if(!t.hitDone&&Math.abs(player.x-t.x)<155&&player.y+player.h/2>GROUND-63){t.hitDone=true;hurtPlayer(36);}
+    if(t.t<=0){t.st='recover';t.t=.6;}
+  }else if(t.st==='recover'&&t.t<=0){t.st='idle';t.t=.3;}
   t.x=Math.max(80,Math.min(W-85,t.x));
   for(let i=eggs.length-1;i>=0;i--){const e=eggs[i];e.x+=e.vx*dt;e.spin+=dt*7;e.life-=dt;
-    if(Math.abs(e.x-player.x)<player.w/2+9&&Math.abs(e.y-player.y)<player.h/2+11){eggs.splice(i,1);burst(e.x,e.y,['#fff7d9','#ffca65'],8,85);hurtPlayer(23);if(state!=='play')return;}
+    if(Math.abs(e.x-player.x)<player.w/2+9&&Math.abs(e.y-player.y)<player.h/2+11){eggs.splice(i,1);burst(e.x,e.y,['#fff7d9','#ffca65'],8,85);hurtPlayer(30);if(state!=='play')return;}
     else if(e.life<=0||e.x< -20||e.x>W+20)eggs.splice(i,1);
   }
 }

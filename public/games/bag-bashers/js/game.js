@@ -69,8 +69,8 @@ cv.addEventListener('pointerdown',e=>{
 function d2(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function rand(a,b){return a+Math.random()*(b-a);}
-function damagePerPunch(){return CONFIG.baseGloveDamage*gloveLevel+Math.floor(strength/CONFIG.strengthToDamage);}
-function runSpeed(){return CONFIG.runSpeed+Math.min(5,shoeLevel)*CONFIG.shoeBonus;}
+function damagePerPunch(){return CONFIG.baseGloveDamage*Math.min(CONFIG.maxGloveLevel,gloveLevel)+Math.floor(Math.min(CONFIG.maxStrength,strength)/CONFIG.strengthToDamage);}
+function runSpeed(){return CONFIG.runSpeed+Math.min(CONFIG.maxShoeLevel,shoeLevel)*CONFIG.shoeBonus;}
 function camX(){return Math.max(0,Math.min(levelWidth-W, player.x-W*0.4));}
 function nearestBag(){
   let best=null,bd=1e9;
@@ -144,7 +144,7 @@ function buildBoss(){
 function doPunch(){
   if(state!=='play'||!running||punchTimer>0) return;
   if(tyson && Math.abs(player.x-tyson.x)<tyson.reach+8 && (!tyson.chicken || Math.abs(player.y-(GROUND-65))<86)){
-    punchTimer=CONFIG.punchCooldown; regenTimer=CONFIG.regenDelay;
+    punchTimer=tyson&&tyson.chicken?.24:CONFIG.punchCooldown; regenTimer=Math.max(regenTimer,CONFIG.regenDelay);
     health-=CONFIG.chipPerPunch; tyson.hp-=damagePerPunch(); tyson.hurt=0.12;
     beep(180+Math.random()*40,0.04); burst(tyson.x,GROUND-40,[COL.gold,COL.blood],6,140);
     if(tyson.hp<=0) return win();
@@ -152,7 +152,7 @@ function doPunch(){
     return;
   }
   const b=nearestBag(); if(!b) return;
-  punchTimer=CONFIG.punchCooldown; regenTimer=CONFIG.regenDelay;
+  punchTimer=tyson&&tyson.chicken?.24:CONFIG.punchCooldown; regenTimer=Math.max(regenTimer,CONFIG.regenDelay);
   health-=CONFIG.chipPerPunch; b.hp-=damagePerPunch(); b.shake=0.15; beep(240,0.03);
   if(b.hp<=0) resolveBag(b);
   if(health<=0 && state==='play') die('You wore yourself down to nothing.');
@@ -168,7 +168,7 @@ function resolveBag(b){
     }
     case 'jackpot':{ money+=50000; coinPop(b.x,b.y); floatText(b.x,b.y-30,'+$50,000 JACKPOT!',COL.gold); beep(720,.2); break; }
     case 'strength':{
-      const g=Math.round(rand(2,4)+level); strength+=g;
+      const g=Math.min(CONFIG.maxStrength-strength,Math.round(rand(2,4)+(level>5?2:level))); strength=Math.min(CONFIG.maxStrength,strength+g);
       burst(b.x,b.y,[COL.steel,'#bfe3ff'],10,120,true);
       popIcons.push({x:b.x,y:b.y,vy:-40,life:0.9,kind:'arm'});
       floatText(b.x,b.y-8,'+'+g+' STR',COL.steel); beep(440,0.08); break;
@@ -219,7 +219,7 @@ function floatText(x,y,t,c){ popIcons.push({x,y,vy:-42,life:.9,kind:'text',text:
 // ---------------- state changes ----------------
 function startGame(chicken=false){
   SAVE_KEY=chicken?'evans-chicken-boss-v2':'evans-mike-tyson-v2';
-  money=chicken?1500:0; strength=chicken?30:0; gloveLevel=chicken?8:1; shoeLevel=0;
+  money=chicken?250:0; strength=chicken?10:0; gloveLevel=chicken?3:1; shoeLevel=0;
   gloveSkin=0; bagSkin=0; characterSkin=0; ownedSkins=[0]; armorLevel=0; jumpLevel=0; shields=0; scanner=false;
   level=chicken?6:1; hideAll();state='play';running=true;buildLevel(level); saveCheckpoint();
 }
@@ -231,9 +231,9 @@ function die(msg){ state='reset';running=false;
 }
 function restartLevel(){ if(checkpoint) restoreSnapshot(checkpoint); hideAll();state='play';running=true;buildLevel(level); }
 function showVictory(){ document.getElementById('winTitle').textContent=level>5?'CHICKEN BOSS DEFEATED!':'MIKE TYSON DEFEATED!'; document.getElementById('winMessage').textContent=level>5?'+$10,000':'All five levels cleared.'; show('ovWin'); }
-function win(){ state='win';running=false; money+=level>5?10000:1000; saveCheckpoint('win'); showVictory();beep(660,0.4); }
+function win(){ state='win';running=false; money+=level>5?1500:1000; saveCheckpoint('win'); showVictory();beep(660,0.4); }
 function openShop(){ state='shop';running=false;
-  if(level===5){ gloveLevel=Math.max(gloveLevel,8); strength=Math.max(strength,30); }
+  if(level===5){ gloveLevel=Math.min(CONFIG.maxGloveLevel,Math.max(gloveLevel,3)); strength=Math.min(CONFIG.maxStrength,Math.max(strength,10)); }
   document.getElementById('shopTitle').textContent=level===5?'CHICKEN WORLD UNLOCKED!':LEVELS[level-1].name+' • CLEARED';
   document.getElementById('shopMoney').textContent='You have $'+money.toLocaleString()+'  |  STR '+strength;
   renderShop(); show('ovShop'); saveCheckpoint('shop');
@@ -242,16 +242,16 @@ function nextLevel(){ level=Math.min(MAX_LEVEL,level+1);
   hideAll();state='play';running=true;buildLevel(level); saveCheckpoint(); }
 
 // ---------------- shop ----------------
-function gloveCost(){return 30*gloveLevel;}
-function shoeCost(){return 25*(shoeLevel+1);}
+function gloveCost(){return (level>5?300:30)*gloveLevel;}
+function shoeCost(){return (level>5?400:25)*(shoeLevel+1);}
 const SKIN_COST=15;
 function renderShop(){
   const grid=document.getElementById('shopGrid');
   const items=[
-    {t:'Better Gloves L'+(gloveLevel+1),d:'+1 damage per punch. Bags break faster.',
-      c:gloveCost(),can:money>=gloveCost(),act:()=>{money-=gloveCost();gloveLevel++;}},
-    {t:'Faster Shoes L'+(shoeLevel+1),d:'Run quicker across the level. Maximum level 5.',
-      c:shoeCost(),can:money>=shoeCost()&&shoeLevel<5,act:()=>{money-=shoeCost();shoeLevel++;}},
+    {t:'Gloves '+gloveLevel+'/'+CONFIG.maxGloveLevel,d:'+1 damage per punch. Bags break faster.',
+      c:gloveCost(),can:money>=gloveCost()&&gloveLevel<CONFIG.maxGloveLevel,act:()=>{money-=gloveCost();gloveLevel=Math.min(CONFIG.maxGloveLevel,gloveLevel+1);}},
+    {t:'Shoes '+shoeLevel+'/'+CONFIG.maxShoeLevel,d:'Run quicker across the level. Maximum level 2.',
+      c:shoeCost(),can:money>=shoeCost()&&shoeLevel<CONFIG.maxShoeLevel,act:()=>{money-=shoeCost();shoeLevel=Math.min(CONFIG.maxShoeLevel,shoeLevel+1);}},
     {t:'Glove Skin',d:'Cosmetic. Cycles glove colour.',
       c:SKIN_COST,can:money>=SKIN_COST,act:()=>{money-=SKIN_COST;gloveSkin=(gloveSkin+1)%5;}},
     {t:'Bag Skin',d:'Cosmetic. Cycles bag colour.',
@@ -313,7 +313,7 @@ function update(dt){
 
   if(punchTimer>0)punchTimer-=dt;
   if(regenTimer>0)regenTimer-=dt;
-  else if(health<CONFIG.maxHealth) health=Math.min(CONFIG.maxHealth,health+CONFIG.regenPerSec*dt);
+  else if(health<CONFIG.maxHealth) health=Math.min(CONFIG.maxHealth,health+(tyson&&tyson.chicken?4:CONFIG.regenPerSec)*dt);
   if(greenFlash>0)greenFlash-=dt;
   for(const b of bags) if(b.shake>0)b.shake-=dt;
 
