@@ -111,9 +111,8 @@ function App() {
           <span>EVAN’S UNIVERSE</span>
         </a>
         <nav className="site-tabs" aria-label="Main navigation">
-          <a href="#home" aria-current={page === 'home' ? 'page' : undefined}>Home</a>
+          <a href="#home" aria-current={page !== 'games' ? 'page' : undefined}>Home</a>
           <a href="#games" onClick={() => setPlaying(false)} aria-current={page === 'games' ? 'page' : undefined}>Games</a>
-          <a href="#rocket" onClick={() => setPreset("rocket")} aria-current={page === 'rocket' ? 'page' : undefined}>Rocket</a>
         </nav>
         <div className="header-controls">
           <label className="sky-preset" htmlFor="sky-preset">

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createSandTexture, createWaterSurface, type WaterRing } from './natural-surfaces';
 import type { SkyPreset } from './sky-presets';
 
 type Spark = { x: number; y: number; vx: number; vy: number; life: number; hue: number };
@@ -15,14 +16,23 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
     let sparks: Spark[] = [];
     const grooves: { x: number; y: number; start: boolean }[] = [];
     let newStroke = true;
+    let sandTexture: HTMLCanvasElement | null = null;
+    const waterSurface = createWaterSurface();
+    let rings: WaterRing[] = [];
+    let lastRing = -1;
     const dots = Array.from({ length: 90 }, (_, i) => ({ x: ((i * 137.508) % 100) / 100, y: ((i * 73.17) % 100) / 100, size: 1 + i % 4 }));
     const resize = () => {
       width = canvas.clientWidth; height = canvas.clientHeight;
       const ratio = Math.min(devicePixelRatio || 1, 2);
       canvas.width = width * ratio; canvas.height = height * ratio;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      if (preset === 'sand') sandTexture = createSandTexture(width, height);
     };
     const emit = (count: number) => {
+      if (preset === 'water') {
+        if (time - lastRing > .12 || count > 3) { rings.push({ x: x / width, y: y / height, born: time }); rings = rings.slice(-10); lastRing = time; }
+        return;
+      }
       for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2, speed = 20 + Math.random() * 90;
         sparks.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 1, hue: (settings.current.colour * 100 + time * 15 + i * 13) % 360 });
@@ -61,39 +71,16 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
       const colors: Record<string, string[]> = { rocket: ['#080e2c', '#301a59'], sand: ['#745033', '#c39961'], water: ['#061b44', '#06667c'] };
       const palette = colors[preset] || colors.rocket;
       gradient.addColorStop(0, palette[0]); gradient.addColorStop(1, palette[1]); ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height);
-      if (preset === 'water') {
-        for (let j = 0; j < 9; j++) {
-          ctx.beginPath();
-          for (let px = 0; px <= width + 10; px += 10) {
-            const influence = visible ? Math.exp(-Math.pow((px - x) / 180, 2)) * (y / height - .5) * 130 : 0;
-            const py = height * (.28 + j * .07) + Math.sin(px / 170 + time * .4 + j * .45) * 45 + influence;
-            if (!px) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-          }
-          ctx.strokeStyle = `hsla(${180 + j * 5 + settings.current.colour * 10},80%,65%,.24)`;
-          ctx.lineWidth = 12; ctx.stroke();
-        }
-      }
-      for (const [i, dot] of dots.entries()) {
-        const px = dot.x * width;
-        let py = (dot.y * height - (preset === 'sand' ? 0 : time)) % (height + 80);
+      if (preset === 'water') { rings = rings.filter(r => time - r.born < 3); waterSurface(ctx, width, height, time, rings, settings.current.colour); }
+      if (preset === 'sand' && sandTexture) ctx.drawImage(sandTexture, 0, 0, width, height);
+      if (preset === 'rocket') for (const dot of dots) {
+        let py = (dot.y * height - time) % (height + 80);
         if (py < -40) py += height + 80;
-        if (preset === 'sand') {
-          for (let j = 0; j < 12; j++) circle((px + j * 47) % width, (py + j * 83) % height, .7 + dot.size * .2, i % 2 ? '#f0d6a144' : '#50351f44');
-        } else if (preset === 'rocket') circle(px, py, dot.size * .45, '#e1eaff88');
-      }
-      if (preset === 'sand') {
-        for (let j = 0; j < 7; j++) {
-          ctx.beginPath();
-          for (let px = 0; px <= width + 10; px += 10) {
-            const py = height * (j / 6) + Math.sin(px / 260 + j) * 35;
-            if (!px) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-          }
-          ctx.strokeStyle = '#f1dca319'; ctx.lineWidth = 18; ctx.stroke();
-        }
+        circle(dot.x * width, py, dot.size * .45, '#e1eaff88');
       }
       if (preset === 'sand') {
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        for (const [offset, color, thickness] of [[3, '#f2d29c88', 10], [0, '#65432399', 8]] as const) {
+        for (const [offset, color, thickness] of [[3, '#fff0bd88', 17], [-2, '#78553166', 14], [0, '#99744088', 9], [2, '#b18c5277', 5]] as const) {
           ctx.beginPath();
           grooves.forEach((p, i) => { if (!i || p.start) ctx.moveTo(p.x * width, p.y * height + offset); else ctx.lineTo(p.x * width, p.y * height + offset); });
           ctx.strokeStyle = color; ctx.lineWidth = thickness; ctx.stroke();
@@ -102,25 +89,25 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
       if (preset === 'rocket') {
         // Fixed-size visitors wrap beyond the screen edge; calm mode freezes their clock.
         for (let i = 0; i < 3; i++) {
-          const progress = ((time * (24 + i * 7) + width * (.14 + i * .31)) % (width + 160)) - 80;
+          const progress = ((time * (24 + i * 7) + (width + 160) * (.28 + i * .23)) % (width + 160)) - 80;
           const ux = i % 2 ? width - progress : progress;
-          const uy = height * (.24 + i * .23) + Math.sin(time * .7 + i * 2) * 18;
-          ctx.save(); ctx.translate(ux, uy); ctx.rotate(Math.sin(time * .5 + i) * .09);
+          const uy = height * (.33 + i * .14) + Math.sin(time * .7 + i * 2) * 18;
+          ctx.save(); ctx.translate(ux, uy); ctx.scale(1.35, 1.35); ctx.rotate(Math.sin(time * .5 + i) * .09);
           ctx.fillStyle = '#9ff4deaa'; ctx.beginPath(); ctx.ellipse(0, -9, 16, 16, 0, Math.PI, Math.PI * 2); ctx.fill();
           circle(0, -15, 6, '#b7ed9f'); circle(-2, -16, 1.5, '#17233e'); circle(3, -16, 1.5, '#17233e');
           ctx.fillStyle = ['#b5a4e9', '#83bdda', '#d7a4c2'][i]; ctx.beginPath(); ctx.ellipse(0, 0, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
           for (let light = -1; light <= 1; light++) circle(light * 17, 2, 2.5, '#f7efb5');
           ctx.restore();
         }
-        for (let i = 0; i < 2; i++) {
-          const phase = (time + i * 4 + .8) % 9;
-          if (phase > 2.6) continue;
-          const progress = phase / 2.6;
+        for (let i = 0; i < 3; i++) {
+          const phase = (time + i * 1.8 + .8) % 5.4;
+          if (phase > 3.2) continue;
+          const progress = phase / 3.2;
           const sx = -110 + progress * (width + 280);
-          const sy = height * (.12 + i * .28) + progress * height * .28;
-          const trail = ctx.createLinearGradient(sx - 95, sy - 28, sx, sy);
-          trail.addColorStop(0, '#a7caff00'); trail.addColorStop(1, '#dcefffcc');
-          ctx.strokeStyle = trail; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx - 95, sy - 28); ctx.lineTo(sx, sy); ctx.stroke();
+          const sy = height * (.25 + i * .14) + progress * height * .28;
+          const trail = ctx.createLinearGradient(sx - 145, sy - 28, sx, sy);
+          trail.addColorStop(0, '#a7caff00'); trail.addColorStop(1, '#eaf7ffff');
+          ctx.strokeStyle = trail; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx - 145, sy - 28); ctx.lineTo(sx, sy); ctx.stroke();
           circle(sx, sy, 2.5, '#f4faff');
         }
         circle(width * .78, height * .3, 56, '#b6a5e0'); circle(width * .79, height * .28, 12, '#8d7abe'); circle(width * .765, height * .325, 18, '#9580c5');
@@ -132,7 +119,7 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
       for (const p of sparks) {
         if (preset === 'water') {
           ctx.beginPath(); ctx.arc(p.x, p.y, 4 + (1 - p.life) * 65, 0, Math.PI * 2); ctx.strokeStyle = `rgba(170,235,255,${p.life * .3})`; ctx.lineWidth = 1.5; ctx.stroke();
-        } else circle(p.x, p.y, preset === 'sand' ? 1 + p.life * 2 : 2 + p.life * 4, preset === 'sand' ? `rgba(255,221,158,${p.life})` : `hsla(${p.hue},90%,75%,${p.life * .7})`);
+        } else circle(p.x, p.y, preset === 'sand' ? .5 + p.life * .7 : 2 + p.life * 4, preset === 'sand' ? `rgba(255,221,158,${p.life})` : `hsla(${p.hue},90%,75%,${p.life * .7})`);
       }
       if (preset === 'rocket' && visible) {
         ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
