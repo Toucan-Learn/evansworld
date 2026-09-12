@@ -16,6 +16,7 @@ const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).h
 function App() {
   const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');
   const [playing, setPlaying] = useState(false);
+  const [gameLoaded, setGameLoaded] = useState(false);
   useEffect(() => {
     const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');setPlaying(false);};
     addEventListener('hashchange', navigate);
@@ -153,18 +154,20 @@ function App() {
           <div className="game-toolbar">
             <button onClick={() => setPlaying(false)}>← Games</button>
             <h1>Bag Bashers</h1>
+            <a className="open-game-link" href={`${import.meta.env.BASE_URL}games/bag-bashers/index.html`} target="_blank" rel="noopener">Open game ↗</a>
           </div>
+          {!gameLoaded && <p className="game-loading" role="status">Loading game…</p>}
           <iframe
             className="game-frame"
             src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?embed=1`}
             title="Bag Bashers"
             allow="fullscreen"
             allowFullScreen
-            onLoad={event => event.currentTarget.contentWindow?.focus()}
+            onLoad={event => { setGameLoaded(true); event.currentTarget.contentWindow?.focus(); }}
           />
         </> : <>
           <h1>Games</h1>
-          <button className="game-choice" onClick={() => setPlaying(true)}>
+          <button className="game-choice" onClick={() => { setGameLoaded(false); setPlaying(true); }}>
             <span className="game-icon" aria-hidden="true">🥊</span>
             <span className="game-name">Bag Bashers</span>
             <span className="game-play">Play →</span>
