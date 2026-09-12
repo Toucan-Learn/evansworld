@@ -87,3 +87,11 @@ body.embedded #wrap>h1,body.embedded #sub,body.embedded .hint,body.embedded #sav
 body.embedded #stage,body.embedded #pad{width:min(100%,calc((100dvh - 70px)*1.7778))}
 body.embedded #stage{min-height:0} body.embedded canvas{box-shadow:none}
 @media(max-width:700px){body.embedded[data-panel="ovShop"] #stage{min-height:calc(100dvh - 100px)}}
+
+.title-mark{font-size:clamp(26px,4vw,38px);letter-spacing:-1px;margin:8px 0 16px}
+.title-actions{flex-direction:row;flex-wrap:wrap;justify-content:center;width:auto;max-width:360px;gap:8px;margin:0}
+.title-actions button{font-size:11px;padding:10px 14px;min-height:40px;width:auto}
+.title-actions #continueBtn{flex-basis:100%;margin-top:4px}
+.eyebrow{font-size:9px;letter-spacing:2px}
+
+.title-actions #continueBtn{display:none}

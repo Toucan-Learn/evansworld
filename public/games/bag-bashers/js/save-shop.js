@@ -41,3 +41,9 @@ if(typeof location!=='undefined'){
   if(saved&&((saved.level>5)===chicken))continueGame();else startGame(chicken);
  }
 }
+
+function chooseCampaign(chicken){
+ SAVE_KEY=chicken?'evans-chicken-boss-v2':'evans-mike-tyson-v2';
+ const saved=readSave();
+ if(saved&&saved.phase!=='win'&&((saved.level>5)===chicken))continueGame();else startGame(chicken);
+}

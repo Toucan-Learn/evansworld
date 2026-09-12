@@ -743,3 +743,11 @@ header > * {
 @media(max-width:650px){.site-tabs{grid-column:1/-1;grid-row:3;justify-self:start;margin:0}.game-choices{gap:12px}.game-choice{min-height:160px;padding:16px;gap:8px}.game-name{font-size:1.2rem}.game-icon{font-size:32px}.games-panel>h1{font-size:1.5rem;margin-bottom:12px}}
 @media(max-height:600px){.game-choice{min-height:110px;padding:14px;gap:5px}.game-icon{font-size:26px}.game-name{font-size:1.1rem}.games-panel>h1{margin-bottom:8px;font-size:1.4rem}}
 @media(max-height:500px) and (min-width:500px){.site-tabs{order:0;margin:0;padding:2px}.site-tabs a{min-height:38px;padding:0 10px}header{flex-wrap:nowrap}.game-toolbar button{min-height:32px}.game-toolbar h1{font-size:1rem}.games-panel{padding:0}}
+
+/* Compact game launcher. The campaigns are chosen inside Bag Bashers. */
+.site-tabs{padding:3px;border-radius:12px}.site-tabs a{min-height:36px;padding:0 12px;font-size:.875rem;border-radius:9px}
+.games-panel:not(.game-open){width:min(820px,100%);padding:8px 4px}
+.games-panel>h1{font-size:1.35rem;margin:0 0 14px}
+.game-choice{display:flex;flex-direction:row;align-items:center;gap:12px;width:310px;max-width:100%;min-height:0;padding:12px 16px;border-radius:14px}
+.game-icon{font-size:24px;line-height:1}.game-name{font-size:1rem}.game-play{margin:0 0 0 auto;font-size:.875rem}
+@media(max-width:650px){.game-choice{min-height:0;padding:12px 14px;gap:10px}.game-icon{font-size:24px}.game-name{font-size:1rem}.site-tabs a{min-height:36px;padding:0 12px}}

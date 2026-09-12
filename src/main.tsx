@@ -12,16 +12,11 @@ import {
 } from "../components/sky-presets";
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
-type Game = 'mike-tyson' | 'chicken-boss';
-const games: {id: Game; name: string; icon: string}[] = [
-  {id: 'mike-tyson', name: 'Mike Tyson', icon: '🥊'},
-  {id: 'chicken-boss', name: 'Chicken Boss', icon: '🐔'},
-];
 function App() {
   const [page, setPage] = useState(() => location.hash === '#games' ? 'games' : 'home');
-  const [playing, setPlaying] = useState<Game | null>(null);
+  const [playing, setPlaying] = useState(false);
   useEffect(() => {
-    const navigate = () => {setPage(location.hash === '#games' ? 'games' : 'home');setPlaying(null);};
+    const navigate = () => {setPage(location.hash === '#games' ? 'games' : 'home');setPlaying(false);};
     addEventListener('hashchange', navigate);
     return () => removeEventListener('hashchange', navigate);
   }, []);
@@ -113,7 +108,7 @@ function App() {
         </a>
         <nav className="site-tabs" aria-label="Main navigation">
           <a href="#home" aria-current={page === 'home' ? 'page' : undefined}>Home</a>
-          <a href="#games" aria-current={page === 'games' ? 'page' : undefined}>Games</a>
+          <a href="#games" onClick={() => setPlaying(false)} aria-current={page === 'games' ? 'page' : undefined}>Games</a>
         </nav>
         <div className="header-controls">
           <label className="sky-preset" htmlFor="sky-preset">
@@ -152,27 +147,24 @@ function App() {
       </section> : <section className={`games-panel${playing ? ' game-open' : ''}`} aria-label="Games">
         {playing ? <>
           <div className="game-toolbar">
-            <button onClick={() => setPlaying(null)}>← Games</button>
-            <h1>{games.find(game => game.id === playing)?.name}</h1>
+            <button onClick={() => setPlaying(false)}>← Games</button>
+            <h1>Bag Bashers</h1>
           </div>
           <iframe
-            key={playing}
             className="game-frame"
-            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?chapter=${playing}&embed=1`}
-            title={games.find(game => game.id === playing)?.name}
+            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?embed=1`}
+            title="Bag Bashers"
             allow="fullscreen"
             allowFullScreen
             onLoad={event => event.currentTarget.contentWindow?.focus()}
           />
         </> : <>
           <h1>Games</h1>
-          <div className="game-choices">
-            {games.map(game => <button className="game-choice" key={game.id} onClick={() => setPlaying(game.id)}>
-              <span className="game-icon" aria-hidden="true">{game.icon}</span>
-              <span className="game-name">{game.name}</span>
-              <span className="game-play">Play →</span>
-            </button>)}
-          </div>
+          <button className="game-choice" onClick={() => setPlaying(true)}>
+            <span className="game-icon" aria-hidden="true">🥊</span>
+            <span className="game-name">Bag Bashers</span>
+            <span className="game-play">Play →</span>
+          </button>
         </>}
       </section>}
       <div className="sky-tools" aria-label="Sky controls">

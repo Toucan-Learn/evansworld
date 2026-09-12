@@ -35,4 +35,5 @@ test('website cards start the selected campaign and use separate saves',()=>{
   assert.equal(vm.runInContext('state',fresh),'play');
  }
 });
+test('in-game campaign choices resume their own progress',()=>{run('startGame();level=3;money=321;saveCheckpoint();startGame(true);level=8;money=654;saveCheckpoint();chooseCampaign(false)');assert.equal(run('level'),3);assert.equal(run('money'),321);run('chooseCampaign(true)');assert.equal(run('level'),8);assert.equal(run('money'),654);});
 console.log(`\n${count} game checks passed.`);

@@ -42,6 +42,6 @@ TypeScript compilation, the production build, audio hashes, stereo MP3 codecs an
 
 ## Games
 
-The top Games tab has **Mike Tyson** and **Chicken Boss**, with separate five-level campaigns and separate saved progress. The galaxy and selected sky stay mounted while switching tabs. Choose a game to play inside the site; use **← Games** to return.
+The top Games tab has one compact **Bag Bashers** launcher. Inside the game, choose **Mike Tyson** or **Chicken Boss**, each with five levels and its own saved progress. The galaxy and selected sky stay mounted while switching tabs. Choose a game to play inside the site; use **← Games** to return.
 
 Edit game levels and balance in `public/games/bag-bashers/js/config.js`, boss behaviour/art in `js/chicken.js`, and shop/save behaviour in `js/save-shop.js`. Run `pnpm test` and `pnpm build:pages`, then publish the source and generated `docs/` together.
