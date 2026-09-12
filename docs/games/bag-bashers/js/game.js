@@ -88,7 +88,7 @@ function buildLevel(n){
   levelWidth=L.boss?W:L.width;
   player={x:70,y:GROUND-17,vy:0,onGround:true,face:1,w:26,h:34};
   portalOut={x:levelWidth-60,y:GROUND-30};
-  plats=[]; bags=[];
+  plats=[]; bags=[]; buildLittleChickens(n);
 
   if(L.chicken){ buildChickenBoss(); return; }
   if(L.boss){ buildBoss(); return; }
@@ -151,6 +151,7 @@ function doPunch(){
     if(health<=0) return die();
     return;
   }
+  if(punchLittleChicken())return;
   const b=nearestBag(); if(!b) return;
   punchTimer=tyson&&tyson.chicken?.24:CONFIG.punchCooldown; regenTimer=Math.max(regenTimer,CONFIG.regenDelay);
   health-=CONFIG.chipPerPunch; b.hp-=damagePerPunch(); b.shake=0.15; beep(240,0.03);
@@ -317,6 +318,7 @@ function update(dt){
   if(greenFlash>0)greenFlash-=dt;
   for(const b of bags) if(b.shake>0)b.shake-=dt;
 
+  updateLittleChickens(dt); if(state!=='play')return;
   if(tyson && tyson.chicken){ updateChickenBoss(dt); if(state!=='play') return; }
   else if(tyson){
     if(tyson.hurt>0)tyson.hurt-=dt;

@@ -60,3 +60,8 @@ test('strength cannot grow past cap from bags or training',()=>{run("startGame(t
 test('chicken boss has more health and speeds up at half health',()=>{run("startGame(true);level=10;buildLevel(10);tyson.st='eggWarning';tyson.t=0;updateChickenBoss(.016)");assert.equal(run('tyson.maxHp'),1200);assert.equal(run('Math.abs(eggs[0].vx)'),310);run("eggs=[];tyson.hp=500;tyson.st='eggWarning';tyson.t=0;updateChickenBoss(.016)");assert.equal(run('Math.abs(eggs[0].vx)'),365);});
 
 console.log(`\n${count} game checks passed.`);
+
+test('exactly three optional little chickens in every chicken level',()=>{for(let n=1;n<=10;n++){run(`level=${n};buildLevel(level)`);assert.equal(run('littleChickens.length'),n>=6?3:0);}});
+test('little chickens take five punches even with max strength',()=>{run("startGame(true);strength=50;gloveLevel=5;player.x=littleChickens[0].x;bags=[];");for(let i=0;i<4;i++)run('punchTimer=0;doPunch()');assert.equal(run('littleChickens[0].hits'),1);run('punchTimer=0;doPunch()');assert.equal(run('littleChickens[0].hits'),0);});
+test('little chicken pecks are telegraphed and jumpable',()=>{run("startGame(true);player.x=littleChickens[0].x;updateLittleChickens(.01)");assert.equal(run('health'),100);assert.equal(run('littleChickens[0].st'),'warning');run('updateLittleChickens(.41)');assert.equal(run('health'),86);run("health=100;littleChickens[0].st='warning';littleChickens[0].t=0;player.y=GROUND-110;updateLittleChickens(.01)");assert.equal(run('health'),100);});
+test('leaving a level does not require defeating little chickens',()=>{run("startGame(true);player.x=portalOut.x;update(.016)");assert.equal(run('state'),'shop');assert.equal(run('littleChickens.filter(c=>c.hits===5).length'),3);});

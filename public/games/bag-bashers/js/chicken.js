@@ -101,3 +101,49 @@ function drawChickenBoss(t,cx){
   ctx.font='bold 10px Courier New';ctx.textAlign='center';ctx.fillStyle='#fff0d4';ctx.fillText('GRANDMA CHICKEN',x,y-197);
 }
 function drawEggs(cx){for(const e of eggs){ctx.save();ctx.translate(e.x-cx,e.y);ctx.rotate(e.spin);oval(0,0,9,12,'#fff4d4');ctx.restore();}}
+
+// Small chickens count landed punches, so every upgrade still takes five hits.
+let littleChickens=[];
+function buildLittleChickens(n){
+  littleChickens=n<6?[]:[.28,.52,.76].map((fraction,i)=>({x:levelWidth*fraction,home:levelWidth*fraction,hits:5,dir:i%2?1:-1,st:'walk',t:0,hurt:0}));
+}
+function punchLittleChicken(){
+  const target=littleChickens.filter(c=>c.hits>0&&Math.abs(c.x-player.x)<CONFIG.punchRange&&Math.abs(player.y-(GROUND-18))<36).sort((a,b)=>Math.abs(a.x-player.x)-Math.abs(b.x-player.x))[0];
+  if(!target)return false;
+  punchTimer=.22;target.hits--;target.hurt=.18;target.st='recover';target.t=.45;
+  target.x=Math.max(35,Math.min(levelWidth-35,target.x+(target.x<player.x?-12:12)));
+  burst(target.x,GROUND-23,['#fff1d0','#e5ba67'],6,70);beep(340,.05);
+  return true;
+}
+function updateLittleChickens(dt){
+  for(const c of littleChickens){
+    if(c.hits<=0)continue;
+    c.hurt=Math.max(0,c.hurt-dt);c.t-=dt;
+    const dx=player.x-c.x,grounded=player.y+player.h/2>GROUND-42;
+    if(c.st==='walk'){
+      if(Math.abs(dx)<48&&grounded){c.dir=dx<0?-1:1;c.st='warning';c.t=.4;}
+      else {if(Math.abs(dx)<155)c.dir=dx<0?-1:1;else if(Math.abs(c.x-c.home)>65)c.dir=c.x>c.home?-1:1;c.x+=c.dir*32*dt;}
+    }else if(c.st==='warning'&&c.t<=0){
+      c.st='peck';c.t=.16;
+      if(Math.abs(dx)<58&&grounded){health-=Math.max(6,14-armorLevel*2);regenTimer=Math.max(regenTimer,1.8);shakeT=.1;beep(100,.06);if(health<=0){die();return;}}
+    }else if(c.st==='peck'&&c.t<=0){c.st='recover';c.t=1.1;}
+    else if(c.st==='recover'&&c.t<=0)c.st='walk';
+    c.x=Math.max(35,Math.min(levelWidth-35,c.x));
+  }
+}
+function drawLittleChickens(cx){
+  for(const c of littleChickens){
+    if(c.hits<=0)continue;
+    const x=c.x-cx,y=GROUND;if(x< -50||x>W+50)continue;
+    const stretch=c.st==='peck'?10:0;
+    px(x-9,y-7,3,7,'#eca852');px(x+7,y-7,3,7,'#eca852');
+    oval(x,y-19,19,14,c.hurt?'#ffffff':'#fff0cc');
+    oval(x+c.dir*(13+stretch),y-31,10,11,'#ffe7ac');
+    const head=x+c.dir*(13+stretch);
+    poly([[head+c.dir*8,y-34],[head+c.dir*19,y-29],[head+c.dir*8,y-26]],'#ecac45');
+    oval(head-3,y-42,4,5,'#e66158');oval(head+3,y-42,4,5,'#e66158');
+    oval(head+c.dir*3,y-33,2,3,'#29243a');oval(x-c.dir*3,y-20,10,7,'#e4c790');
+    if(c.st==='warning'){ctx.fillStyle='#ffce63';ctx.font='bold 18px Courier New';ctx.textAlign='center';ctx.fillText('!',x,y-55);}
+    if(c.hits<5)for(let i=0;i<5;i++)px(x-17+i*7,y-51,5,4,i<c.hits?'#f3cd64':'#463445');
+  }
+}

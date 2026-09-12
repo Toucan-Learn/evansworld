@@ -86,6 +86,7 @@ function render(){
 
   for(const b of bags) if(!b.broken) drawBag(b,cx);
   if(tyson) { if(tyson.chicken) drawChickenBoss(tyson,cx); else drawTyson(tyson,cx); }
+  drawLittleChickens(cx);
   drawEggs(cx);
   drawPlayer(player,cx);
   drawParticles(cx); drawPopIcons(cx);
