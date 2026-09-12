@@ -36,4 +36,21 @@ test('website cards start the selected campaign and use separate saves',()=>{
  }
 });
 test('in-game campaign choices resume their own progress',()=>{run('startGame();level=3;money=321;saveCheckpoint();startGame(true);level=8;money=654;saveCheckpoint();chooseCampaign(false)');assert.equal(run('level'),3);assert.equal(run('money'),321);run('chooseCampaign(true)');assert.equal(run('level'),8);assert.equal(run('money'),654);});
+test('death loses only current-level cash after banking and shop spending',()=>{
+ run("startGame(true);resolveBag(bags.find(b=>b.type==='money'));openShop();");
+ const earned=run('money');run("extraShopItems().find(x=>x.t.startsWith('Bomb Shield')).act();saveCheckpoint('shop');nextLevel();");
+ const banked=earned-750;run("resolveBag(bags.find(b=>b.type==='money'));");assert.ok(run('money')>banked);
+ run('die();');assert.equal(run('money'),banked);assert.ok(element('resetMsg').textContent.includes('Kept $'));
+ run('restartLevel();');assert.equal(run('money'),banked);assert.equal(run('shields'),1);
+ run('continueGame();');assert.equal(run('money'),banked);
+});
+test('bags require more punches while boss health stays unchanged',()=>{
+ run('startGame();');
+ assert.ok(run('bags.every(b=>b.maxHp>=6&&b.maxHp<=11)'));
+ run("bags=[{x:player.x,y:player.y,type:'money',hp:6,maxHp:6,broken:false,shake:0}];");
+ for(let i=0;i<5;i++)run('punchTimer=0;doPunch()');assert.equal(run('bags[0].broken'),false);
+ run('punchTimer=0;doPunch()');assert.equal(run('bags[0].broken'),true);
+ run('level=5;buildLevel(5)');assert.equal(run('tyson.maxHp'),130);
+ run('startGame(true)');assert.ok(run('bags.every(b=>b.maxHp>=17&&b.maxHp<=30)'));
+});
 console.log(`\n${count} game checks passed.`);

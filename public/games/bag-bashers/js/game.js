@@ -125,7 +125,7 @@ function buildLevel(n){
   shuffle(anchors);
 
   for(let i=0;i<types.length;i++){
-    const hp=Math.round(rand(L.tough[0],L.tough[1]));
+    const hp=Math.ceil(Math.round(rand(L.tough[0],L.tough[1]))*CONFIG.bagHealthMultiplier);
     bags.push({x:anchors[i].x,y:anchors[i].y,design:i%6,type:types[i],maxHp:hp,hp,broken:false,shake:0});
   }
 }
@@ -133,7 +133,7 @@ function buildLevel(n){
 function buildBoss(){
   const contents=shuffle(['money','strength','money','strength','poison','money']);
   for(let i=0;i<contents.length;i++){
-    const hp=Math.round(rand(4,9));
+    const hp=Math.ceil(Math.round(rand(4,9))*CONFIG.bagHealthMultiplier);
     bags.push({x:150+i*80,y:(i%2?GROUND-84:GROUND-22),type:contents[i],maxHp:hp,hp,broken:false,shake:0});
   }
   tyson={x:W-120,hp:CONFIG.tysonHP,maxHp:CONFIG.tysonHP,st:'idle',t:0.6,dir:-1,hurt:0,reach:66};
@@ -224,8 +224,11 @@ function startGame(chicken=false){
   level=chicken?6:1; hideAll();state='play';running=true;buildLevel(level); saveCheckpoint();
 }
 function die(msg){ state='reset';running=false;
+  const banked=checkpoint?checkpoint.money:0;
+  const lost=Math.max(0,money-banked);
+  money=banked;
   document.getElementById('resetTitle').textContent="KO'd";
-  document.getElementById('resetMsg').textContent=msg||'Take a breath, dodge the next attack, and try again. Your checkpoint is safe.';
+  document.getElementById('resetMsg').textContent='Lost $'+lost.toLocaleString()+' this level. Kept $'+banked.toLocaleString()+'.';
   show('ovReset');
 }
 function restartLevel(){ if(checkpoint) restoreSnapshot(checkpoint); hideAll();state='play';running=true;buildLevel(level); }

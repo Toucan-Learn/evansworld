@@ -4,6 +4,7 @@ const CONFIG = {
   poisonDamage:34, poisonToKill:3,
   punchRange:66, punchCooldown:0.16,
   baseGloveDamage:1, strengthToDamage:5,
+  bagHealthMultiplier:1.35,
   gravity:1500, jumpVel:-560, runSpeed:195, shoeBonus:45,
   tysonHP:130, tysonHitDamage:19, tysonHitEvery:1.4
 };
