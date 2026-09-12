@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evan’s Games</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-panel="ovTitle">
+<div id="wrap">
+  <h1>BAG&nbsp;BASHERS</h1>
+  <p id="sub">EVAN’S GAMES</p>
+
+  <div id="stage">
+    <canvas id="c" width="720" height="405" aria-label="Bag Bashers 2D platform game">Your browser needs Canvas support to play.</canvas>
+
+    <div id="ovTitle" class="overlay show title-screen">
+      <div class="eyebrow">AN ORIGINAL GAME BY EVAN</div>
+      <div class="title-mark">BAG <span>BASHERS</span></div>
+      
+      
+      <div class="title-actions">
+        <button class="game big" onclick="startGame()">MIKE TYSON</button>
+        <button class="game chicken-start" onclick="startGame(true)">CHICKEN BOSS</button>
+        <button class="game" id="continueBtn" onclick="continueGame()" hidden>CONTINUE SAVED GAME</button>
+      </div>
+
+    </div>
+    <div id="ovPause" class="overlay">
+      <h2>PAUSED</h2><p>Move: ← → or A/D · Jump: ↑ or W · Punch: Space<br>Jump over low eggs. Stay low for high eggs. Jump away from a peck!</p>
+      <button class="game big" onclick="togglePause()">RESUME</button>
+      <button class="game" onclick="goMenu()">MAIN MENU</button>
+      
+    </div>
+
+    <div id="ovShop" class="overlay">
+      <h2 id="shopTitle">WORLD 1 SHOP</h2>
+      <p id="shopMoney">You have $0</p>
+      <div class="shopgrid" id="shopGrid"></div>
+      <button class="game big" onclick="nextLevel()">ENTER NEXT LEVEL &rarr;</button>
+    </div>
+
+    <div id="ovReset" class="overlay">
+      <h2 id="resetTitle">WIPED OUT</h2>
+      <p id="resetMsg"></p>
+      <button class="game big" onclick="restartLevel()">RETRY LEVEL</button>
+    </div>
+
+    <div id="ovWin" class="overlay">
+      <h2 id="winTitle" style="color:var(--gold)">YOU WIN!</h2>
+      <p id="winMessage"></p>
+      <button class="game big" onclick="startGame(level>5)">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <div id="pad">
+    <button class="game" id="leftBtn">&larr;</button>
+    <button class="game" id="rightBtn">&rarr;</button>
+    <button class="game" id="jumpBtn">JUMP</button>
+    <button class="game" id="punchBtn">PUNCH (SPACE)</button>
+    <button class="game" onclick="togglePause()" aria-label="Pause game">PAUSE</button>
+    <button class="game" id="fsBtn" title="Full screen" style="min-width:56px">FULL</button>
+  </div>
+  <p class="hint">Move ← → / A D · Jump ↑ / W · Punch Space · Pause P</p>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/chicken.js"></script>
+<script src="js/save-shop.js"></script>
+</body>
+</html>

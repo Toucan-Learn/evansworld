@@ -6,7 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test": "node tests/bag-bashers.test.cjs && node --experimental-strip-types --test tests/*.test.mjs",
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/check-music.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",

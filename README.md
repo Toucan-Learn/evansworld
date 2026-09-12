@@ -39,3 +39,9 @@ The active repository is `Toucan-Learn/evansworld`. GitHub Pages serves the gene
 Account-specific Sites configuration remains local and is not part of this GitHub Pages release.
 
 TypeScript compilation, the production build, audio hashes, stereo MP3 codecs and all track durations have been checked. Browser interaction and visual QA have not been performed. The optional `configure_galaxy` WebMCP tool is feature-detected; a supported validation context was unavailable.
+
+## Games
+
+The top Games tab has **Mike Tyson** and **Chicken Boss**, with separate five-level campaigns and separate saved progress. The galaxy and selected sky stay mounted while switching tabs. Choose a game to play inside the site; use **← Games** to return.
+
+Edit game levels and balance in `public/games/bag-bashers/js/config.js`, boss behaviour/art in `js/chicken.js`, and shop/save behaviour in `js/save-shop.js`. Run `pnpm test` and `pnpm build:pages`, then publish the source and generated `docs/` together.

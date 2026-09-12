@@ -12,7 +12,19 @@ import {
 } from "../components/sky-presets";
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
+type Game = 'mike-tyson' | 'chicken-boss';
+const games: {id: Game; name: string; icon: string}[] = [
+  {id: 'mike-tyson', name: 'Mike Tyson', icon: '🥊'},
+  {id: 'chicken-boss', name: 'Chicken Boss', icon: '🐔'},
+];
 function App() {
+  const [page, setPage] = useState(() => location.hash === '#games' ? 'games' : 'home');
+  const [playing, setPlaying] = useState<Game | null>(null);
+  useEffect(() => {
+    const navigate = () => {setPage(location.hash === '#games' ? 'games' : 'home');setPlaying(null);};
+    addEventListener('hashchange', navigate);
+    return () => removeEventListener('hashchange', navigate);
+  }, []);
   const [calm, setCalm] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [colour, setColour] = useState(0);
   const [burst, setBurst] = useState(0);
@@ -92,13 +104,17 @@ function App() {
     return () => life.abort();
   }, []);
   return (
-    <main className="universe">
+    <main className={`universe${playing ? " is-playing-game" : ""}`}>
       <Galaxy calm={calm} colour={colour} burst={burst} preset={preset} />
       <header>
-        <a className="wordmark" href="#" aria-label="Evan's Universe home">
+        <a className="wordmark" href="#home" aria-label="Evan's Universe home">
           <img className="brand-portrait" src={brandLogo} alt="" width={72} height={72} />
           <span>EVAN’S UNIVERSE</span>
         </a>
+        <nav className="site-tabs" aria-label="Main navigation">
+          <a href="#home" aria-current={page === 'home' ? 'page' : undefined}>Home</a>
+          <a href="#games" aria-current={page === 'games' ? 'page' : undefined}>Games</a>
+        </nav>
         <div className="header-controls">
           <label className="sky-preset" htmlFor="sky-preset">
             <span>Sky</span>
@@ -123,7 +139,7 @@ function App() {
           </button>
         </div>
       </header>
-      <section className="greeting">
+      {page === 'home' ? <section className="greeting">
         <p>HELLO, EXPLORER</p>
         <h1>
           A little space.
@@ -133,7 +149,32 @@ function App() {
         <p className="instruction">
           Move your mouse. Make some magic.<span>On a tablet? Draw with your finger.</span>
         </p>
-      </section>
+      </section> : <section className={`games-panel${playing ? ' game-open' : ''}`} aria-label="Games">
+        {playing ? <>
+          <div className="game-toolbar">
+            <button onClick={() => setPlaying(null)}>← Games</button>
+            <h1>{games.find(game => game.id === playing)?.name}</h1>
+          </div>
+          <iframe
+            key={playing}
+            className="game-frame"
+            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?chapter=${playing}&embed=1`}
+            title={games.find(game => game.id === playing)?.name}
+            allow="fullscreen"
+            allowFullScreen
+            onLoad={event => event.currentTarget.contentWindow?.focus()}
+          />
+        </> : <>
+          <h1>Games</h1>
+          <div className="game-choices">
+            {games.map(game => <button className="game-choice" key={game.id} onClick={() => setPlaying(game.id)}>
+              <span className="game-icon" aria-hidden="true">{game.icon}</span>
+              <span className="game-name">{game.name}</span>
+              <span className="game-play">Play →</span>
+            </button>)}
+          </div>
+        </>}
+      </section>}
       <div className="sky-tools" aria-label="Sky controls">
         <button onClick={() => setColour((colour + 1) % 3)} aria-label="Change trail colour">
           <Palette size={20} />
