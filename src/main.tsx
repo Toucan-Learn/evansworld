@@ -173,12 +173,14 @@ function App() {
         </>}
       </section>}
       <div className="sky-tools" aria-label="Sky controls">
+        {activePreset !== "rocket" && <>
         <button onClick={() => setColour((colour + 1) % 3)} aria-label="Change trail colour">
           <Palette size={20} />
           <span>Colour</span>
           <i className={`swatch swatch-${colour}`} />
         </button>
         <span className="divider" />
+        </>}
         <button
           onClick={() => {
             setCalm(false);

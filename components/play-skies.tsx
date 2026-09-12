@@ -100,6 +100,29 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
         }
       }
       if (preset === 'rocket') {
+        // Fixed-size visitors wrap beyond the screen edge; calm mode freezes their clock.
+        for (let i = 0; i < 3; i++) {
+          const progress = ((time * (24 + i * 7) + width * (.14 + i * .31)) % (width + 160)) - 80;
+          const ux = i % 2 ? width - progress : progress;
+          const uy = height * (.24 + i * .23) + Math.sin(time * .7 + i * 2) * 18;
+          ctx.save(); ctx.translate(ux, uy); ctx.rotate(Math.sin(time * .5 + i) * .09);
+          ctx.fillStyle = '#9ff4deaa'; ctx.beginPath(); ctx.ellipse(0, -9, 16, 16, 0, Math.PI, Math.PI * 2); ctx.fill();
+          circle(0, -15, 6, '#b7ed9f'); circle(-2, -16, 1.5, '#17233e'); circle(3, -16, 1.5, '#17233e');
+          ctx.fillStyle = ['#b5a4e9', '#83bdda', '#d7a4c2'][i]; ctx.beginPath(); ctx.ellipse(0, 0, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
+          for (let light = -1; light <= 1; light++) circle(light * 17, 2, 2.5, '#f7efb5');
+          ctx.restore();
+        }
+        for (let i = 0; i < 2; i++) {
+          const phase = (time + i * 4 + .8) % 9;
+          if (phase > 2.6) continue;
+          const progress = phase / 2.6;
+          const sx = -110 + progress * (width + 280);
+          const sy = height * (.12 + i * .28) + progress * height * .28;
+          const trail = ctx.createLinearGradient(sx - 95, sy - 28, sx, sy);
+          trail.addColorStop(0, '#a7caff00'); trail.addColorStop(1, '#dcefffcc');
+          ctx.strokeStyle = trail; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx - 95, sy - 28); ctx.lineTo(sx, sy); ctx.stroke();
+          circle(sx, sy, 2.5, '#f4faff');
+        }
         circle(width * .78, height * .3, 56, '#b6a5e0'); circle(width * .79, height * .28, 12, '#8d7abe'); circle(width * .765, height * .325, 18, '#9580c5');
         ctx.save(); ctx.translate(width * .22, height * .72); ctx.rotate(-.3);
         ctx.strokeStyle = '#eabfbb88'; ctx.lineWidth = 9; ctx.beginPath(); ctx.ellipse(0, 0, 84, 22, 0, 0, Math.PI * 2); ctx.stroke(); circle(0, 0, 43, '#d6a082'); ctx.restore();
