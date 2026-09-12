@@ -40,7 +40,7 @@ test('death loses only current-level cash after banking and shop spending',()=>{
  run("startGame(true);resolveBag(bags.find(b=>b.type==='money'));openShop();");
  const earned=run('money');run("extraShopItems().find(x=>x.t.startsWith('Bomb Shield')).act();saveCheckpoint('shop');nextLevel();");
  const banked=earned-750;run("resolveBag(bags.find(b=>b.type==='money'));");assert.ok(run('money')>banked);
- run('die();');assert.equal(run('money'),banked);assert.ok(element('resetMsg').textContent.includes('Kept $'));
+ run('die();');assert.equal(run('money'),banked);assert.equal(element('resetTitle').textContent,'KO’d');
  run('restartLevel();');assert.equal(run('money'),banked);assert.equal(run('shields'),1);
  run('continueGame();');assert.equal(run('money'),banked);
 });

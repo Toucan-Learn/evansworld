@@ -225,10 +225,8 @@ function startGame(chicken=false){
 }
 function die(msg){ state='reset';running=false;
   const banked=checkpoint?checkpoint.money:0;
-  const lost=Math.max(0,money-banked);
   money=banked;
-  document.getElementById('resetTitle').textContent="KO'd";
-  document.getElementById('resetMsg').textContent='Lost $'+lost.toLocaleString()+' this level. Kept $'+banked.toLocaleString()+'.';
+  document.getElementById('resetTitle').textContent="KO’d";
   show('ovReset');
 }
 function restartLevel(){ if(checkpoint) restoreSnapshot(checkpoint); hideAll();state='play';running=true;buildLevel(level); }
