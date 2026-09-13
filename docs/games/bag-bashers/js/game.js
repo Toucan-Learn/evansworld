@@ -94,6 +94,14 @@ function buildLevel(n){
   if(L.boss){ buildBoss(); return; }
 
   plats=genPlatforms(L);
+  // The fourth chicken level has a learnable layout on every visit and retry.
+  if(L.jackpot){
+    for(let i=0;i<16;i++){
+      const hp=Math.ceil((18+i%5)*CONFIG.bagHealthMultiplier);
+      bags.push({x:260+i*(levelWidth-460)/15,y:GROUND-(i%3===1?90:22),design:i%6,type:i===10?'jackpot':'bomb',maxHp:hp,hp,broken:false,shake:0});
+    }
+    return;
+  }
 
   // hidden contents: this world's poison + bombs, the rest split money/strength
   const types=[];
@@ -343,7 +351,7 @@ function update(dt){
   }
 
   if(!tyson && Math.abs(player.x-portalOut.x)<26 && state==='play'){
-    if(!LEVELS[level-1].jackpot || bags.some(b=>b.type==='jackpot'&&b.broken)) openShop();
+    openShop();
   }
 }
 

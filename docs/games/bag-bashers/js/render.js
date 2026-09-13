@@ -197,7 +197,7 @@ function drawHUD(){
   ctx.fillStyle=COL.bone; ctx.fillText((level>5?'CHICKEN '+(level-5)+'/5':'CLASSIC '+level+'/5')+(tyson?' BOSS':'')+'  DMG '+damagePerPunch(),W-14,H-26);
   ctx.textAlign='center'; ctx.fillStyle=COL.bone; ctx.fillText(LEVELS[iSafe()].name,W/2,22);
   ctx.fillStyle=COL.steel; ctx.fillText('SHIELDS '+shields,W/2,37);
-  if(LEVELS[level-1].jackpot){ctx.fillStyle=COL.gold;ctx.fillText('15 BOMBS • FIND & BREAK THE $50K BAG TO OPEN THE EXIT',W/2,H-9);}
+  if(LEVELS[level-1].jackpot){ctx.fillStyle=COL.gold;ctx.fillText('15 BOMBS • $50K BONUS • EXIT ANY TIME',W/2,H-9);}
   const done=bags.filter(b=>b.broken).length;
   ctx.textAlign='left'; ctx.fillStyle=COL.bone; ctx.fillText('BAGS '+done+'/'+bags.length,14,H-26);
   if(tyson){ ctx.textAlign='center'; ctx.fillStyle=COL.gold; ctx.fillText(tyson.chicken?chickenHint():'Tyson blocks the portal. Put him down.',W/2,H-9); }
