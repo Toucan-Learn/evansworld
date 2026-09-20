@@ -14,12 +14,12 @@ import {
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
 function App() {
-  const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');
-  const [selectedGame, setSelectedGame] = useState("bag-bashers");
-  const [playing, setPlaying] = useState(false);
+  const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : ['#games','#snakes-ladders'].includes(location.hash) ? 'games' : 'home');
+  const [selectedGame, setSelectedGame] = useState(location.hash === "#snakes-ladders" ? "snakes-ladders" : "bag-bashers");
+  const [playing, setPlaying] = useState(location.hash === "#snakes-ladders");
   const [gameLoaded, setGameLoaded] = useState(false);
   useEffect(() => {
-    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');setPlaying(false);};
+    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : ['#games','#snakes-ladders'].includes(location.hash) ? 'games' : 'home');setPlaying(location.hash === '#snakes-ladders');if(location.hash === '#snakes-ladders'){setSelectedGame('snakes-ladders');setGameLoaded(false);}};
     addEventListener('hashchange', navigate);
     return () => removeEventListener('hashchange', navigate);
   }, []);
