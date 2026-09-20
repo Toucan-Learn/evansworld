@@ -11,7 +11,7 @@ export function answer(state, value) {
   if (!state.dice || state.winner !== null) return { state, correct: false };
   const [a, b] = state.dice;
   if (!/^\d+$/.test(String(value).trim()) || Number(value) !== a * b) return { state, correct: false };
-  const landing = Math.min(100, state.positions[state.turn] + a + b);
+  const landing = Math.min(100, state.positions[state.turn] + a * b);
   const destination = LADDERS[landing] || SNAKES[landing] || landing;
   const positions = [...state.positions]; positions[state.turn] = destination;
   const winner = destination === 100 ? state.turn : null;

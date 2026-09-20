@@ -1,4 +1,4 @@
-import { LADDERS, SNAKES, newGame, roll, answer, squarePoint } from './engine.js';
+import { LADDERS, SNAKES, newGame, roll, answer, squarePoint } from './engine.js?v=2';
 const $ = id => document.getElementById(id);
 let state = newGame();
 for (let row = 9; row >= 0; row--) for (let col = 0; col < 10; col++) {
