@@ -4,6 +4,7 @@ export const SKY_PRESETS = [
   { id: "rocket", label: "Rocket flight" },
   { id: "sand", label: "Sand" },
   { id: "water", label: "Water" },
+  { id: "drawing", label: "Evan’s drawing" },
 ] as const;
 
 export type SkyPreset = (typeof SKY_PRESETS)[number]["id"];
@@ -18,5 +19,5 @@ export function savedSkyPreset(): SkyPreset {
     const value = localStorage.getItem(SKY_PRESET_KEY);
     if (isSkyPreset(value)) return value;
   } catch {}
-  return "earth";
+  return "drawing";
 }

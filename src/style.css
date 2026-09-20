@@ -763,3 +763,7 @@ header > * {
 @media(max-width:500px){.game-toolbar{gap:8px}.game-toolbar h1{display:none}}
 
 .game-loading{margin:0;padding:8px 12px;align-self:flex-start;background:#102335e8;border-radius:8px;color:#eaf3f5;font-size:.875rem}
+
+.drawing-backdrop{position:absolute;inset:0;z-index:-2;background:#30224d url('../public/art/evans-drawing.png') center/contain no-repeat}
+.game-choice+.game-choice{margin-top:12px}
+.sky-tools[hidden]{display:none}

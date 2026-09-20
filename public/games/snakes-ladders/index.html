@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Multiplication Snakes & Ladders</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header><div><p class="eyebrow">EVAN’S MATHS GAMES</p><h1>Snakes <span>&</span> Ladders</h1></div><button id="restart" class="quiet" hidden>New game</button></header>
+<section id="setup" class="setup"><span class="big-icon" aria-hidden="true">🎲</span><h2>A little maths. A big climb.</h2><p>Multiply the dice to move by their total.</p><div class="modes"><button data-players="1">1 player</button><button data-players="2">2 players</button></div><p class="small">Climb ladders. Slide down snakes. Reach 100!</p></section>
+<section id="play" class="play" hidden>
+<div class="board-wrap"><div id="board" class="board" aria-label="Snakes and ladders board, squares 1 to 100"></div><svg id="paths" viewBox="0 0 100 100" aria-hidden="true"></svg><div id="tokens" aria-hidden="true"></div></div>
+<aside><div id="players" class="players"></div><h2 id="turn"></h2><div class="dice" aria-label="Dice"><span id="die-a">?</span><span id="die-b">?</span></div><button id="roll">Roll dice</button>
+<form id="question" hidden><label id="equation" for="answer"></label><div class="answer-row"><input id="answer" name="answer" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Your answer" required><button type="submit">Go →</button></div></form>
+<p id="message" role="status" aria-live="polite">Roll to begin.</p><p class="small" id="rule">Correct answer → move by the dice total.</p><button id="again" hidden>Play again</button></aside>
+</section><footer>Background drawn by Evan</footer></main><script type="module" src="game.js"></script></body></html>

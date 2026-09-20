@@ -4,7 +4,7 @@ const root = new URL('../', import.meta.url);
 const output = new URL('docs/', root);
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
-for (const entry of ['index.html', 'assets', 'music', 'games'])
+for (const entry of ['index.html', 'assets', 'music', 'games', 'art'])
   cpSync(new URL(`dist/${entry}`, root), new URL(entry, output), { recursive: true });
 writeFileSync(new URL('.nojekyll', output), '');
 const { tracks } = JSON.parse(readFileSync(new URL('data/music-provenance.json', root), 'utf8'));

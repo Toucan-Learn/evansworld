@@ -15,6 +15,7 @@ import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
 function App() {
   const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : location.hash === '#games' ? 'games' : 'home');
+  const [selectedGame, setSelectedGame] = useState("bag-bashers");
   const [playing, setPlaying] = useState(false);
   const [gameLoaded, setGameLoaded] = useState(false);
   useEffect(() => {
@@ -100,12 +101,15 @@ function App() {
     } catch {}
     return () => life.abort();
   }, []);
+  const gameTitle = selectedGame === "bag-bashers" ? "Bag Bashers" : "Snakes & Ladders";
+  const gameURL = `${import.meta.env.BASE_URL}games/${selectedGame}/index.html`;
   const activePreset = page === 'rocket' ? 'rocket' : preset;
   const classicSky = activePreset === 'earth' || activePreset === 'pixel';
   return (
     <main className={`universe${playing ? " is-playing-game" : ""}`}>
       <div style={{ display: classicSky ? "contents" : "none" }}><Galaxy calm={calm || !classicSky} colour={colour} burst={burst} preset={preset} /></div>
-      {!classicSky && <PlaySkies preset={activePreset} calm={calm} colour={colour} burst={burst} />}
+      {activePreset === "drawing" && <div className="drawing-backdrop" aria-hidden="true" />}
+      {!classicSky && activePreset !== "drawing" && <PlaySkies preset={activePreset} calm={calm} colour={colour} burst={burst} />}
       <header>
         <a className="wordmark" href="#home" aria-label="Evan's Universe home">
           <img className="brand-portrait" src={brandLogo} alt="" width={72} height={72} />
@@ -153,28 +157,31 @@ function App() {
         {playing ? <>
           <div className="game-toolbar">
             <button onClick={() => setPlaying(false)}>← Games</button>
-            <h1>Bag Bashers</h1>
-            <a className="open-game-link" href={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?v=5`} target="_blank" rel="noopener">Open game ↗</a>
+            <h1>{gameTitle}</h1>
+            <a className="open-game-link" href={`${gameURL}?v=5`} target="_blank" rel="noopener">Open game ↗</a>
           </div>
           {!gameLoaded && <p className="game-loading" role="status">Loading game…</p>}
           <iframe
             className="game-frame"
-            src={`${import.meta.env.BASE_URL}games/bag-bashers/index.html?embed=1&v=5`}
-            title="Bag Bashers"
+            src={`${gameURL}?embed=1&v=5`}
+            title={gameTitle}
             allow="fullscreen"
             allowFullScreen
             onLoad={event => { setGameLoaded(true); event.currentTarget.contentWindow?.focus(); }}
           />
         </> : <>
           <h1>Games</h1>
-          <button className="game-choice" onClick={() => { setGameLoaded(false); setPlaying(true); }}>
+          <button className="game-choice" onClick={() => { setSelectedGame("bag-bashers"); setGameLoaded(false); setPlaying(true); }}>
             <span className="game-icon" aria-hidden="true">🥊</span>
             <span className="game-name">Bag Bashers</span>
             <span className="game-play">Play →</span>
           </button>
+          <button className="game-choice" onClick={() => { setSelectedGame("snakes-ladders"); setGameLoaded(false); setPlaying(true); }}>
+            <span className="game-icon" aria-hidden="true">🎲</span><span className="game-name">Snakes &amp; Ladders</span><span className="game-play">Play →</span>
+          </button>
         </>}
       </section>}
-      <div className="sky-tools" aria-label="Sky controls">
+      <div hidden={activePreset === "drawing"} className="sky-tools" aria-label="Sky controls">
         {activePreset !== "rocket" && <>
         <button onClick={() => setColour((colour + 1) % 3)} aria-label="Change trail colour">
           <Palette size={20} />
