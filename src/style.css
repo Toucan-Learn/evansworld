@@ -764,6 +764,15 @@ header > * {
 
 .game-loading{margin:0;padding:8px 12px;align-self:flex-start;background:#102335e8;border-radius:8px;color:#eaf3f5;font-size:.875rem}
 
-.drawing-backdrop{position:absolute;inset:0;z-index:-2;background:#30224d url('../public/art/evans-drawing.png') center/contain no-repeat}
+.galaxy-backdrop[data-sky-preset="drawing"]{background:#30224d url('../public/art/evans-drawing.png') center/contain no-repeat}
+.galaxy-backdrop[data-sky-preset="drawing"] .galaxy-sky{image-rendering:auto;mix-blend-mode:normal}
+.galaxy-backdrop[data-sky-preset="drawing"] .sky-shade{display:none}
 .game-choice+.game-choice{margin-top:12px}
 .sky-tools[hidden]{display:none}
+
+/* Pixel sky keeps its original ocean tint while its pixels refract. */
+.galaxy-backdrop[data-sky-preset="pixel"][data-ripple-renderer^="pixel-warp"] {
+  background: linear-gradient(130deg, #166181, #3e9a8d 52%, #dcce91);
+  isolation: isolate;
+}
+.galaxy-backdrop[data-sky-preset="pixel"] .galaxy-sky { mix-blend-mode: screen; }

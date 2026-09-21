@@ -105,11 +105,11 @@ function App() {
   const gameURL = `${import.meta.env.BASE_URL}games/${selectedGame}/index.html`;
   const activePreset = page === 'rocket' ? 'rocket' : preset;
   const classicSky = activePreset === 'earth' || activePreset === 'pixel';
+  const interactiveSky = classicSky || activePreset === 'drawing';
   return (
     <main className={`universe${playing ? " is-playing-game" : ""}`}>
-      <div style={{ display: classicSky ? "contents" : "none" }}><Galaxy calm={calm || !classicSky} colour={colour} burst={burst} preset={preset} /></div>
-      {activePreset === "drawing" && <div className="drawing-backdrop" aria-hidden="true" />}
-      {!classicSky && activePreset !== "drawing" && <PlaySkies preset={activePreset} calm={calm} colour={colour} burst={burst} />}
+      <div style={{ display: interactiveSky ? "contents" : "none" }}><Galaxy calm={calm || !interactiveSky} colour={colour} burst={burst} preset={activePreset} /></div>
+      {!interactiveSky && <PlaySkies preset={activePreset} calm={calm} colour={colour} burst={burst} />}
       <header>
         <a className="wordmark" href="#home" aria-label="Evan's Universe home">
           <img className="brand-portrait" src={brandLogo} alt="" width={72} height={72} />
@@ -181,7 +181,7 @@ function App() {
           </button>
         </>}
       </section>}
-      <div hidden={activePreset === "drawing"} className="sky-tools" aria-label="Sky controls">
+      <div className="sky-tools" aria-label="Sky controls">
         {activePreset !== "rocket" && <>
         <button onClick={() => setColour((colour + 1) % 3)} aria-label="Change trail colour">
           <Palette size={20} />
@@ -197,7 +197,7 @@ function App() {
           }}
         >
           <Sparkles size={20} />
-          <span>{activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
+          <span>{activePreset === "drawing" ? "Wave" : activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
         </button>
       </div>
       <Radio />

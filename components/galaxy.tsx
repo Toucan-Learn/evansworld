@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { originalFragmentSource, vertexSource } from "./galaxy-shaders";
 import { MAX_RIPPLES, RIPPLE_SPEED, RIPPLE_TAIL, RipplePool, rippleOpacity } from "./ripples";
+import { warpSkyImage } from "./sky-image-warp";
+
 import type { SkyPreset } from "./sky-presets";
 
-// Keep Harry's geometry, ordered dithering and noise, with Evan's Earth palette.
+// Shared galaxy geometry, ordered dithering and noise with the Earth palette.
 const fragmentSource = originalFragmentSource
   .replace(
     /const vec3 PALETTE\[9\]=vec3\[\]\([\s\S]*?\);/,
@@ -21,6 +23,10 @@ const fragmentSource = originalFragmentSource
   .replace(
     "uniform float home_view;",
     `uniform float home_view;
+uniform sampler2D pixel_sky;
+uniform vec2 pixel_size;
+uniform float pixel_view;
+uniform float image_contain;
 uniform vec4 brush[12];
 uniform vec2 swash[12];
 uniform vec3 ink;
@@ -57,7 +63,25 @@ uniform int rippleCount;`,
   ring+=wave;
   rippleWarp+=normalize(delta+vec2(.0001))*wave*.025;
  }
- noise_uv+=clamp(warp,vec2(-.10),vec2(.10))+clamp(rippleWarp,vec2(-.06),vec2(.06));
+ vec2 displacement=clamp(warp,vec2(-.10),vec2(.10))+clamp(rippleWarp,vec2(-.06),vec2(.06));
+ if(pixel_view>.5){
+  // Refract either saved artwork with the same displacement as the Earth sky.
+  // The drawing keeps its original centred contain framing and purple margins.
+  vec2 sample_uv=clamp(uv+displacement/vec2(grid.x/grid.y,1.0),0.0,1.0);
+  vec2 fit=grid/pixel_size;
+  float image_scale=image_contain>.5?min(fit.x,fit.y):max(fit.x,fit.y);
+  vec2 visible=grid/(pixel_size*image_scale);
+  sample_uv=(sample_uv-.5)*visible+.5;
+  vec4 image=texture(pixel_sky,clamp(sample_uv,0.0,1.0));
+  vec3 matte=vec3(48.0,34.0,77.0)/255.0;
+  float inside=float(all(greaterThanEqual(sample_uv,vec2(0.0)))&&all(lessThanEqual(sample_uv,vec2(1.0))));
+  vec3 original=image_contain>.5?mix(matte,image.rgb,image.a*inside):image.rgb;
+  float brightness=max(original.r,max(original.g,original.b));
+  vec3 painted=floor((ink*(.15+brightness*.85)+original*.55)*32.0+.5)/32.0;
+  outputColour=vec4(mix(original,painted,clamp(brushLight+ring*.38,0.0,.8)),1.0);
+  return;
+ }
+ noise_uv+=displacement;
  vec2 drift=vec2(t*.0007,-t*.00028);`,
   )
   .replace(
@@ -110,7 +134,16 @@ export function Galaxy({
       elapsed = 0,
       disposed = false,
       loaded = false,
+      pixelLoaded = false,
+      drawingLoaded = false,
+      renderedPreset = state.current.preset,
       lastBurst = state.current.burst;
+    const pixelSky = new Image();
+    const drawing = new Image();
+    const fallbackSource = document.createElement("canvas");
+    const fallbackContext = fallbackSource.getContext("2d", { willReadFrequently: true });
+    let sourcePixels: ImageData | null = null,
+      outputPixels: ImageData | null = null;
     const ripples = new RipplePool();
     const rippleValues = new Float32Array(MAX_RIPPLES * 3);
     let dots: Dot[] = [];
@@ -119,7 +152,9 @@ export function Galaxy({
     let keyPoint = { x: 0.55, y: 0.5 };
     let program: WebGLProgram | null = null,
       buffer: WebGLBuffer | null = null,
-      texture: WebGLTexture | null = null;
+      texture: WebGLTexture | null = null,
+      pixelTexture: WebGLTexture | null = null,
+      drawingTexture: WebGLTexture | null = null;
     const shaders: WebGLShader[] = [];
     const loc: Record<string, WebGLUniformLocation | null> = {};
     let usable = false;
@@ -128,13 +163,53 @@ export function Galaxy({
       fallback = document.createElement("canvas");
       fallback.className = "galaxy-sky";
       fallback.style.cssText = "position:absolute;inset:0;opacity:1";
-      fallback.width = canvas.width;
-      fallback.height = canvas.height;
-      canvas.after(fallback);
+      fallback.width = Math.min(canvas.width, 320);
+      fallback.height = Math.max(1, Math.round((canvas.height * fallback.width) / canvas.width));
+      canvas.parentNode?.insertBefore(fallback, canvas.nextSibling);
       ctx = fallback.getContext("2d");
+      prepareFallback();
     }
     function animatedSky() {
-      return usable && loaded && state.current.preset === "earth";
+      return (
+        usable &&
+        loaded &&
+        (state.current.preset === "earth" ||
+          (state.current.preset === "pixel" && pixelLoaded) ||
+          (state.current.preset === "drawing" && drawingLoaded))
+      );
+    }
+    function needsFrames() {
+      return (
+        (animatedSky() && state.current.preset === "earth") || dots.length || ripples.active.length
+      );
+    }
+    function prepareFallback() {
+      sourcePixels = null;
+      outputPixels = null;
+      const isDrawing = state.current.preset === "drawing";
+      const source = isDrawing ? drawing : pixelSky;
+      if (!fallback || !fallbackContext || !(isDrawing ? drawingLoaded : pixelLoaded)) return;
+      fallbackSource.width = fallback.width;
+      fallbackSource.height = fallback.height;
+      fallbackContext.imageSmoothingEnabled = isDrawing;
+      fallbackContext.fillStyle = "#30224d";
+      fallbackContext.fillRect(0, 0, fallback.width, fallback.height);
+      const fit = isDrawing ? Math.min : Math.max;
+      const scale = fit(
+        fallback.width / source.naturalWidth,
+        fallback.height / source.naturalHeight,
+      );
+      const width = source.naturalWidth * scale,
+        height = source.naturalHeight * scale;
+      fallbackContext.drawImage(
+        source,
+        (fallback.width - width) / 2,
+        (fallback.height - height) / 2,
+        width,
+        height,
+      );
+      sourcePixels = fallbackContext.getImageData(0, 0, fallback.width, fallback.height);
+      outputPixels = fallbackContext.createImageData(fallback.width, fallback.height);
     }
     if (gl) {
       try {
@@ -172,10 +247,50 @@ export function Galaxy({
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.uniform1i(gl.getUniformLocation(program, "nebula_noise"), 0);
+        pixelTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, pixelTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          1,
+          1,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          new Uint8Array([11, 19, 30, 255]),
+        );
+        gl.uniform1i(gl.getUniformLocation(program, "pixel_sky"), 1);
+        drawingTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, drawingTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          1,
+          1,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          new Uint8Array([48, 34, 77, 255]),
+        );
         for (const name of [
           "resolution",
           "clock",
           "home_view",
+          "pixel_view",
+          "pixel_size",
+          "image_contain",
           "brush[0]",
           "swash[0]",
           "ink",
@@ -192,6 +307,7 @@ export function Galaxy({
     if (usable) {
       noise.onload = () => {
         if (disposed || !usable) return;
+        gl!.activeTexture(gl!.TEXTURE0);
         gl!.bindTexture(gl!.TEXTURE_2D, texture);
         gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, noise);
         loaded = true;
@@ -207,10 +323,48 @@ export function Galaxy({
       };
       noise.src = new URL("../assets/galaxy-noise.png", import.meta.url).href;
     }
+    pixelSky.onload = () => {
+      if (disposed) return;
+      pixelLoaded = true;
+      if (usable && gl) {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, pixelTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixelSky);
+      }
+      prepareFallback();
+      wake();
+    };
+    pixelSky.src = new URL("../assets/loading-pixel-sky.png", import.meta.url).href;
+    drawing.onload = () => {
+      if (disposed) return;
+      drawingLoaded = true;
+      if (usable && gl) {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, drawingTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, drawing);
+      }
+      prepareFallback();
+      wake();
+    };
+    drawing.src = new URL("../public/art/evans-drawing.png", import.meta.url).href;
     function draw() {
       if (disposed || document.hidden) return;
       const ink = inks[state.current.colour];
       const animate = animatedSky();
+      const isDrawing = state.current.preset === "drawing";
+      const source = isDrawing ? drawing : pixelSky;
+      canvas.parentElement!.dataset.skyPreset = state.current.preset;
+      canvas.parentElement!.dataset.rippleRenderer = animate
+        ? "pixel-warp-webgl"
+        : (isDrawing ? drawingLoaded : pixelLoaded)
+          ? "pixel-warp-2d"
+          : "loading";
+      // At rest use the original full-resolution drawing without resampling it.
+      if (isDrawing && !dots.length && !ripples.active.length) {
+        canvas.style.opacity = "0";
+        if (fallback) fallback.style.opacity = "0";
+        return;
+      }
       canvas.style.opacity = animate ? "1" : "0";
       if (animate && gl) {
         if (fallback) fallback.style.opacity = "0";
@@ -224,6 +378,11 @@ export function Galaxy({
         gl.uniform2f(loc.resolution, canvas.width, canvas.height);
         gl.uniform1f(loc.clock, elapsed);
         gl.uniform1f(loc.home_view, 1);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, isDrawing ? drawingTexture : pixelTexture);
+        gl.uniform1f(loc.pixel_view, state.current.preset === "pixel" || isDrawing ? 1 : 0);
+        gl.uniform1f(loc.image_contain, isDrawing ? 1 : 0);
+        gl.uniform2f(loc.pixel_size, source.naturalWidth || 1, source.naturalHeight || 1);
         gl.uniform4fv(loc["brush[0]"], values);
         gl.uniform2fv(loc["swash[0]"], swashes);
         gl.uniform3fv(loc.ink, ink);
@@ -238,36 +397,22 @@ export function Galaxy({
         if (!ctx || !fallback) return;
         fallback.style.opacity = "1";
         ctx.clearRect(0, 0, fallback.width, fallback.height);
-        for (const p of dots) {
-          const life = Math.max(0, 1 - (elapsed - p.born) / 1.5);
-          const magnitude = Math.hypot(p.dx, p.dy);
-          const dx = magnitude ? p.dx / magnitude : 1;
-          const dy = magnitude ? p.dy / magnitude : 0;
-          for (let i = 0; i < 28; i++) {
-            const along = (i % 7) * 3 - 9 + (elapsed - p.born) * 7;
-            const across = Math.floor(i / 7) * 2 - 3;
-            ctx.fillStyle = `rgba(${ink.map((v) => Math.round(v * 255)).join(",")},${life * 0.65})`;
-            ctx.fillRect(
-              Math.floor(p.x * fallback.width + dx * along - dy * across),
-              Math.floor(p.y * fallback.height + dy * along + dx * across),
-              2,
-              2,
-            );
-          }
-        }
-        for (const ripple of ripples.active) {
-          const radius = (elapsed - ripple.born) * RIPPLE_SPEED * fallback.height;
-          const points = Math.max(40, Math.ceil(Math.PI * radius));
-          ctx.fillStyle = `rgba(${ink.map((v) => Math.round(v * 255)).join(",")},${rippleOpacity(ripple, elapsed, ripples.aspect) * 0.8})`;
-          for (let i = 0; i < points; i++) {
-            const a = (i * Math.PI * 2) / points;
-            ctx.fillRect(
-              Math.floor(ripple.x * fallback.width + Math.cos(a) * radius),
-              Math.floor(ripple.y * fallback.height + Math.sin(a) * radius),
-              2,
-              2,
-            );
-          }
+        if (sourcePixels && outputPixels) {
+          warpSkyImage(
+            sourcePixels.data,
+            outputPixels.data,
+            fallback.width,
+            fallback.height,
+            ripples.active.map((ripple) => ({
+              x: ripple.x,
+              y: ripple.y,
+              radius: (elapsed - ripple.born) * RIPPLE_SPEED,
+              opacity: rippleOpacity(ripple, elapsed, ripples.aspect),
+            })),
+            dots.map((p) => ({ ...p, life: Math.max(0, 1 - (elapsed - p.born) / 1.5) })),
+            ink,
+          );
+          ctx.putImageData(outputPixels, 0, 0);
         }
       }
     }
@@ -282,8 +427,7 @@ export function Galaxy({
         ripples.expire(elapsed);
         draw();
       }
-      if (animatedSky() || dots.length || ripples.active.length)
-        frame = requestAnimationFrame(tick);
+      if (needsFrames()) frame = requestAnimationFrame(tick);
     }
     function wake() {
       while (lastBurst < state.current.burst) {
@@ -301,26 +445,24 @@ export function Galaxy({
         last = 0;
       }
       draw();
-      if (
-        !disposed &&
-        !document.hidden &&
-        !state.current.calm &&
-        !frame &&
-        (animatedSky() || dots.length || ripples.active.length)
-      ) {
+      if (!disposed && !document.hidden && !state.current.calm && !frame && needsFrames()) {
         last = 0;
         frame = requestAnimationFrame(tick);
       }
     }
     function resize() {
       const box = surface.getBoundingClientRect();
-      const scale = Math.max(4, box.width / 560);
+      const scale =
+        state.current.preset === "drawing"
+          ? Math.max(1, Math.max(box.width, box.height) / 1200)
+          : Math.max(4, box.width / 560);
       canvas.width = Math.max(1, Math.floor(box.width / scale));
       canvas.height = Math.max(1, Math.floor(box.height / scale));
       ripples.aspect = canvas.width / canvas.height;
       if (fallback) {
-        fallback.width = canvas.width;
-        fallback.height = canvas.height;
+        fallback.width = Math.min(canvas.width, 320);
+        fallback.height = Math.max(1, Math.round((canvas.height * fallback.width) / canvas.width));
+        prepareFallback();
       }
       draw();
     }
@@ -383,9 +525,18 @@ export function Galaxy({
       resize();
       wake();
     }
-    refresh.current = wake;
+    refresh.current = () => {
+      if (renderedPreset !== state.current.preset) {
+        renderedPreset = state.current.preset;
+        resize();
+      }
+      wake();
+    };
     resize();
     wake();
+    // Observe the whole page without sitting on top of its real controls. The
+    // sky still follows mouse, pen and touch input while links, games and forms
+    // remain fully usable.
     surface.addEventListener("pointermove", point);
     surface.addEventListener("pointerdown", point);
     surface.addEventListener("keydown", keys);
@@ -399,6 +550,8 @@ export function Galaxy({
       cancelAnimationFrame(frame);
       noise.onload = null;
       noise.onerror = null;
+      pixelSky.onload = null;
+      drawing.onload = null;
       refresh.current = null;
       surface.removeEventListener("pointermove", point);
       surface.removeEventListener("pointerdown", point);
@@ -412,13 +565,15 @@ export function Galaxy({
         shaders.forEach((s) => gl.deleteShader(s));
         gl.deleteBuffer(buffer);
         gl.deleteTexture(texture);
+        gl.deleteTexture(pixelTexture);
+        gl.deleteTexture(drawingTexture);
         gl.deleteProgram(program);
       }
     };
   }, []);
   return (
     <>
-      <div className="galaxy-backdrop" aria-hidden="true">
+      <div className="galaxy-backdrop" data-sky-preset={preset} aria-hidden="true">
         <canvas ref={canvasRef} className="galaxy-sky" />
         <div className="sky-shade" />
       </div>
@@ -427,7 +582,7 @@ export function Galaxy({
         className="galaxy-touch"
         tabIndex={0}
         role="application"
-        aria-label="Interactive galaxy. Use arrow keys to paint, and space for a star burst."
+        aria-label={`Interactive ${preset === "drawing" ? "drawing" : "galaxy"}. Use arrow keys to paint, and space for a wave.`}
         onFocus={() => setKeyboardHint(true)}
         onBlur={() => setKeyboardHint(false)}
       />
