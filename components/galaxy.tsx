@@ -59,11 +59,24 @@ uniform int rippleCount;`,
   float reach=length(farEdge);
   float radius=age*${RIPPLE_SPEED};
   float fade=1.0-smoothstep(reach,reach+${RIPPLE_TAIL},radius);
-  float wave=exp(-pow((length(delta)-radius)*60.0,2.0))*fade;
-  ring+=wave;
-  rippleWarp+=normalize(delta+vec2(.0001))*wave*.025;
+  vec2 direction=normalize(delta+vec2(.0001));
+  if(image_contain>.5){
+   // A broad elastic shockwave folds the drawing outwards, then pulls it back.
+   // Corrugate the advancing rim without rotating the artwork into a swirl.
+   float angle=atan(delta.y,delta.x+.000001);
+   float wobble=(sin(angle*5.0+radius*12.0)+sin(angle*9.0-radius*9.0)*.45)*.018*smoothstep(0.0,.12,radius);
+   float band=(length(delta)-radius-wobble)*12.0;
+   float envelope=exp(-band*band)*fade;
+   rippleWarp+=direction*cos(band*2.4)*envelope*.14;
+   ring+=exp(-band*band*4.0)*fade*.65;
+  }else{
+   float wave=exp(-pow((length(delta)-radius)*60.0,2.0))*fade;
+   ring+=wave;
+   rippleWarp+=direction*wave*.025;
+  }
  }
- vec2 displacement=clamp(warp,vec2(-.10),vec2(.10))+clamp(rippleWarp,vec2(-.06),vec2(.06));
+ float waveLimit=image_contain>.5?.20:.06;
+ vec2 displacement=clamp(warp,vec2(-.10),vec2(.10))+clamp(rippleWarp,vec2(-waveLimit),vec2(waveLimit));
  if(pixel_view>.5){
   // Refract either saved artwork with the same displacement as the Earth sky.
   // The drawing keeps its original centred contain framing and purple margins.
@@ -411,6 +424,7 @@ export function Galaxy({
             })),
             dots.map((p) => ({ ...p, life: Math.max(0, 1 - (elapsed - p.born) / 1.5) })),
             ink,
+            isDrawing ? "elastic" : "gentle",
           );
           ctx.putImageData(outputPixels, 0, 0);
         }

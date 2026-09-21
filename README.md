@@ -12,7 +12,7 @@ The radio has 38 tracks, a track selector, previous/next buttons, play/pause and
 
 The homepage fits the current viewport without scrolling. The layout keeps the sky controls and radio visible, rearranges them for phones in landscape, and reduces decorative text on short screens. Every ripple travels through the farthest corner before fading; its lifetime follows the viewport size and the point where it began.
 
-**Evan’s drawing** shares the pixel backgrounds' directional swashes and overlapping waves. Move the mouse or a finger to bend the artwork, click/tap or press **Wave** for a ripple, or focus the drawing and use the arrow keys and Space. The original image, colours and centred framing are retained; Calm mode restores the still artwork. Pixel sky and the drawing also distort the actual image in the software fallback when WebGL is unavailable.
+**Evan’s drawing** has directional swashes and its own extreme, elastic rings: a broad wobbling wavefront stretches and folds the artwork, then pulls it back. Move the mouse or a finger to bend the artwork, click/tap or press **Mega wave** for overlapping rings, or focus the drawing and use the arrow keys and Space. The original image, colours and centred framing are retained; Calm mode restores the still artwork. Pixel sky keeps its gentler waves. Both presets distort the actual image in the software fallback when WebGL is unavailable.
 
 ## Development
 

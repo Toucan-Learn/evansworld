@@ -197,7 +197,7 @@ function App() {
           }}
         >
           <Sparkles size={20} />
-          <span>{activePreset === "drawing" ? "Wave" : activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
+          <span>{activePreset === "drawing" ? "Mega wave" : activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
         </button>
       </div>
       <Radio />

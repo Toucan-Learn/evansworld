@@ -11,12 +11,15 @@ export function warpSkyImage(
   waves: ImageWave[],
   brushes: ImageBrush[],
   ink: number[],
+  rippleStyle: "gentle" | "elastic" = "gentle",
 ) {
   if (!waves.length && !brushes.length) {
     output.set(source);
     return;
   }
   const aspect = width / height;
+  const elastic = rippleStyle === "elastic";
+  const waveLimit = elastic ? 0.2 : 0.06;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const u = (x + 0.5) / width,
@@ -30,13 +33,27 @@ export function warpSkyImage(
         const dx = (u - wave.x) * aspect,
           dy = v - wave.y;
         const distance = Math.hypot(dx, dy);
-        const difference = (distance - wave.radius) * 60;
+        // Keep the drawing's elastic wave in step with the WebGL renderer.
+        const angle = elastic ? Math.atan2(dy, dx + 0.000001) : 0;
+        const growth = Math.max(0, Math.min(1, wave.radius / 0.12));
+        const wobble = elastic
+          ? (Math.sin(angle * 5 + wave.radius * 12) +
+              Math.sin(angle * 9 - wave.radius * 9) * 0.45) *
+            0.018 *
+            growth *
+            growth *
+            (3 - 2 * growth)
+          : 0;
+        const difference = (distance - wave.radius - wobble) * (elastic ? 12 : 60);
         if (Math.abs(difference) > 4) continue;
         const strength = Math.exp(-difference * difference) * wave.opacity;
         const length = Math.hypot(dx + 0.0001, dy + 0.0001);
-        waveX += ((dx + 0.0001) / length) * strength * 0.025;
-        waveY += ((dy + 0.0001) / length) * strength * 0.025;
-        glow += strength * 0.38;
+        const bend = elastic ? Math.cos(difference * 2.4) * strength * 0.14 : strength * 0.025;
+        waveX += ((dx + 0.0001) / length) * bend;
+        waveY += ((dy + 0.0001) / length) * bend;
+        glow += elastic
+          ? Math.exp(-difference * difference * 4) * wave.opacity * 0.65 * 0.38
+          : strength * 0.38;
       }
       for (const brush of brushes) {
         const dx = (u - brush.x) * aspect,
@@ -52,8 +69,10 @@ export function warpSkyImage(
         brushY -= directionY * strength;
         glow += halo * 0.22;
       }
-      const warpX = Math.max(-0.1, Math.min(0.1, brushX)) + Math.max(-0.06, Math.min(0.06, waveX));
-      const warpY = Math.max(-0.1, Math.min(0.1, brushY)) + Math.max(-0.06, Math.min(0.06, waveY));
+      const warpX =
+        Math.max(-0.1, Math.min(0.1, brushX)) + Math.max(-waveLimit, Math.min(waveLimit, waveX));
+      const warpY =
+        Math.max(-0.1, Math.min(0.1, brushY)) + Math.max(-waveLimit, Math.min(waveLimit, waveY));
       const sampleX = Math.max(0, Math.min(width - 1, Math.floor((u + warpX / aspect) * width)));
       const sampleY = Math.max(0, Math.min(height - 1, Math.floor((v + warpY) * height)));
       const from = (sampleY * width + sampleX) * 4,
