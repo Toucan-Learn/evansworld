@@ -1,12 +1,11 @@
-import { LADDERS, SNAKES, newGame, roll, answer, squarePoint } from './engine.js?v=2';
+import { DICE_SIDES, LADDERS, SNAKES, newGame, roll, answer, squarePoint } from './engine.js?v=5';
 const $ = id => document.getElementById(id);
 let state = newGame();
 let rolling = false, rollRun = 0, faceTimer;
 let diceAnimations = [];
-const pipSpots = {1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
 function diceFace(element, value) {
-  element.replaceChildren(...Array.from({length:9},(_,i)=>{const pip=document.createElement('i');pip.className=pipSpots[value].includes(i+1)?'pip':'pip empty';return pip;}));
-  element.dataset.value=value;
+  const number=document.createElement('span');number.className='die-number';number.textContent=value;
+  element.replaceChildren(number);element.dataset.value=value;
 }
 function cancelRoll(){
   rollRun++;rolling=false;clearInterval(faceTimer);
@@ -35,7 +34,7 @@ async function animateRoll(){
     diceAnimations.push(die.animate(frames,{duration:reduced?250:1500,easing:'ease-out',fill:'forwards'}));return die;
   });
   const started=performance.now();
-  if(!reduced)faceTimer=setInterval(()=>dice.forEach((die,i)=>diceFace(die,performance.now()-started<1050?1+Math.floor(Math.random()*6):state.dice[i])),85);
+  if(!reduced)faceTimer=setInterval(()=>dice.forEach((die,i)=>diceFace(die,performance.now()-started<1050?1+Math.floor(Math.random()*DICE_SIDES):state.dice[i])),85);
   await Promise.all(diceAnimations.map(animation=>animation.finished.catch(()=>{})));
   if(run!==rollRun)return;
   clearInterval(faceTimer);dice.forEach(die=>die.remove());diceAnimations=[];rolling=false;
