@@ -1,0 +1,45 @@
+import {ROUNDS,areaChallenge,trackChallenge,isCorrect} from './rules.js';
+const $=id=>document.getElementById(id), area=document.body.dataset.game==='monster-nets';
+let round=0,phase='intro',challenge,frame=0,runId=0,measured=false;
+const names=['Moss Muncher','Bubble Beast','Fuzzy Fang','Moon Monster','Rainbow Rumbler'];
+const colours=['#91cd7d','#80c9db','#d2a0e2','#e9b66c','#d998a9'];
+function cancel(){runId++;cancelAnimationFrame(frame);}
+function svg(content,label){return `<svg viewBox="0 0 640 430" role="img" aria-label="${label}">${content}</svg>`;}
+function drawMonster(caught=false){
+ const {width:w,height:h}=challenge,unit=Math.min(400/w,245/h),bw=w*unit,bh=h*unit,x=(640-bw)/2,y=(430-bh)/2+5;
+ let grid='';if($('grid').checked||caught){for(let i=0;i<=w;i++)grid+=`<path d="M${x+i*unit} ${y}v${bh}"/>`;for(let i=0;i<=h;i++)grid+=`<path d="M${x} ${y+i*unit}h${bw}"/>`;}
+ const rulers=measured?`<path class="measure-line" d="M${x} ${y-23}h${bw} M${x} ${y-31}v16 M${x+bw} ${y-31}v16 M${x+bw+25} ${y}v${bh} M${x+bw+17} ${y}h16 M${x+bw+17} ${y+bh}h16"/><text class="measure-label" x="320" y="${y-34}" text-anchor="middle">${w} m</text><text class="measure-label" x="${x+bw+38}" y="${y+bh/2}" text-anchor="middle" transform="rotate(90 ${x+bw+38} ${y+bh/2})">${h} m</text>`:'';
+ const body=`<defs><pattern id="stars" width="70" height="70" patternUnits="userSpaceOnUse"><circle cx="20" cy="25" r="1.5" fill="#c6f3c333"/></pattern></defs><rect width="640" height="430" fill="url(#stars)"/><ellipse cx="320" cy="${y+bh+17}" rx="${bw*.55}" ry="12" fill="#081e3044"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="${Math.min(24,unit/2)}" fill="${colours[round]}" stroke="#132936" stroke-width="4"/>
+ <path d="M${x+bw*.18} ${y+8}l8 16 10-16 M${x+bw*.7} ${y+bh-8}l8-14 10 14" fill="none" stroke="#fff5" stroke-width="5"/>
+ <ellipse cx="${x+bw*.35}" cy="${y+bh*.4}" rx="${bw*.11}" ry="${bh*.14}" fill="#fff8df"/><ellipse cx="${x+bw*.65}" cy="${y+bh*.4}" rx="${bw*.11}" ry="${bh*.14}" fill="#fff8df"/>
+ <circle cx="${x+bw*.37}" cy="${y+bh*.42}" r="${Math.min(bw,bh)*.045}" fill="#243040"/><circle cx="${x+bw*.63}" cy="${y+bh*.42}" r="${Math.min(bw,bh)*.045}" fill="#243040"/>
+ <path d="M${x+bw*.32} ${y+bh*.67}Q320 ${y+bh*.95} ${x+bw*.68} ${y+bh*.67}" fill="#31414b" stroke="#31414b" stroke-width="4"/>
+ <path d="M${x+bw*.4} ${y+bh*.7}l${bw*.05} ${bh*.11} ${bw*.05}-${bh*.08}" fill="#fff5d7"/>
+ <rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="none" stroke="#ffe5a4" stroke-width="2" stroke-dasharray="6 5"/>
+ <g class="${caught?'captured':''}" stroke="${caught?'#fff2b6':'#21463880'}" stroke-width="${caught?3:1}" fill="none">${grid}</g>${rulers}`;
+ $('scene').innerHTML=`<button class="scene-button" id="monster" aria-label="Measure ${names[round]}" ${caught?'disabled':''}>${svg(body,measured?`Rectangular net, ${w} metres wide and ${h} metres high`:'Click the monster to measure its rectangle')}</button>`;
+ $('monster').onclick=measure;
+}
+function measure(){if(!area||phase!=='measure')return;measured=true;phase='answer';$('action').hidden=true;$('grid-option').hidden=false;$('question').hidden=false;$('prompt').textContent=`${challenge.width} m wide × ${challenge.height} m high`;$('hint').textContent='Area = width × height. Each small square is 1 m².';drawMonster();$('answer').focus();}
+let screenPoints=[];
+function drawTrack(){
+ const points=challenge.points,maxX=Math.max(...points.map(p=>p[0])),maxY=Math.max(...points.map(p=>p[1]));const scale=Math.min(470/maxX,280/maxY),ox=(640-maxX*scale)/2,oy=(430-maxY*scale)/2;
+ screenPoints=points.map(([x,y])=>[ox+x*scale,oy+y*scale]);const path=screenPoints.map(p=>p.join(',')).join(' ');
+ let content=`<defs><pattern id="grass" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M4 10l2-4 2 4" stroke="#bce1a418" fill="none"/></pattern></defs><rect width="640" height="430" fill="#24594c"/><rect width="640" height="430" fill="url(#grass)"/><polygon points="${path}" fill="#417761" stroke="#1a343b" stroke-width="39" stroke-linejoin="round"/><polygon points="${path}" fill="none" stroke="#b29778" stroke-width="28" stroke-linejoin="round"/><polygon points="${path}" fill="none" stroke="#f1e8bd" stroke-width="1.5" stroke-dasharray="7 7"/>`;
+ screenPoints.forEach((a,i)=>{const b=screenPoints[(i+1)%screenPoints.length],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy),lx=(a[0]+b[0])/2+dy/len*35,ly=(a[1]+b[1])/2-dx/len*35;content+=`<path id="segment-${i}" d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" fill="none" stroke="#ffe096" stroke-width="5" opacity="0"/><text class="side-label" x="${lx+(points.length===6&&i===3?16:0)}" y="${ly+6}" text-anchor="middle" ${dx===0?`transform="rotate(-90 ${lx} ${ly})"`:""}>${challenge.lengths[i]} m</text>`;});
+ const [sx,sy]=screenPoints[0];content+=`<path d="M${sx-12} ${sy-16}h24v32h-24z" fill="#fff9"/><path d="M${sx-12} ${sy-16}h12v16h12v16h-12v-16h-12z" fill="#263442"/><g id="runner" transform="translate(${sx} ${sy})"><ellipse cy="12" rx="12" ry="5" fill="#14282b66"/><path d="M-6 8l5-9 7 8 M-9-3l8-4 9 3" stroke="#fff1c0" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="-6" y="-12" width="12" height="15" rx="5" fill="#f39b75"/><circle cy="-18" r="7" fill="#ffe8b6"/></g>`;
+ $('scene').innerHTML=svg(content,`A closed ${challenge.lengths.length}-sided track. Side lengths: ${challenge.lengths.join(', ')} metres.`);
+}
+function runLap(){
+ if(area||phase==='running'||phase==='success')return;phase='running';$('question').hidden=true;$('action').disabled=true;$('action').textContent='Running…';$('status').textContent='';
+ const id=++runId,duration=matchMedia('(prefers-reduced-motion: reduce)').matches?100:5200,start=performance.now();
+ function tick(now){if(id!==runId)return;const progress=Math.min(1,(now-start)/duration),distance=progress*challenge.answer;let passed=0,index=0;while(index<challenge.lengths.length-1&&distance>passed+challenge.lengths[index])passed+=challenge.lengths[index++];const t=Math.min(1,(distance-passed)/challenge.lengths[index]),a=screenPoints[index],b=screenPoints[(index+1)%screenPoints.length];$('runner').setAttribute('transform',`translate(${a[0]+(b[0]-a[0])*t} ${a[1]+(b[1]-a[1])*t})`);challenge.lengths.forEach((_,i)=>$('segment-'+i).setAttribute('opacity',i===index?'1':'.12'));
+ if(progress<1){frame=requestAnimationFrame(tick);return;}phase='answer';$('question').hidden=false;$('action').disabled=false;$('action').textContent='Run again';$('prompt').textContent='How far was one whole lap?';$('hint').textContent=challenge.lengths.map(n=>n+' m').join(' + ');$('status').textContent='Add every side.';$('answer').focus();}
+ frame=requestAnimationFrame(tick);
+}
+function loadRound(){cancel();phase=area?'measure':'ready';measured=false;challenge=area?areaChallenge(round):trackChallenge(round);$('progress').textContent=`${area?'MONSTER':'TRACK'} ${round+1} / ${ROUNDS}`;$('round-title').textContent=area?names[round]:(round<3?'Circuit '+(round+1):'Corner circuit');$('prompt').textContent=area?'Click the monster to measure its net.':'Run once around the track.';$('hint').textContent=area?'Find the area of the rectangular net.':'Perimeter is the distance all the way around.';$('answer-label').textContent=area?'Net area':'Distance run';$('unit').textContent=area?'m²':'m';$('submit').textContent=area?'Catch!':'Check';$('action').textContent=area?'Measure monster':'Run a lap';$('action').hidden=false;$('action').disabled=false;$('question').hidden=true;$('grid-option').hidden=true;$('grid').checked=false;$('next').hidden=true;$('status').textContent='';$('answer').value='';if(area)drawMonster();else drawTrack();}
+function start(){round=0;$('intro').hidden=true;$('victory').hidden=true;$('play').hidden=false;$('restart').hidden=false;loadRound();$('action').focus();}
+$('start').onclick=$('again').onclick=start;$('action').onclick=()=>area?measure():runLap();$('grid').onchange=()=>drawMonster(phase==='success');
+$('question').onsubmit=event=>{event.preventDefault();if(phase!=='answer')return;if(!isCorrect($('answer').value,challenge.answer)){$('status').textContent=area?'Not quite. Multiply width by height.':'Not quite. Add all the side lengths.';$('answer').select();return;}phase='success';$('question').hidden=true;$('action').hidden=true;$('next').hidden=false;$('next').textContent=round===ROUNDS-1?'Finish →':'Next →';$('status').textContent=area?`Caught! A ${challenge.answer} m² net fits.`:`That’s right — ${challenge.answer} m!`;if(area)drawMonster(true);$('next').focus();};
+$('next').onclick=()=>{if(phase!=='success')return;if(++round<ROUNDS){loadRound();$('action').focus();return;}$('play').hidden=true;$('victory').hidden=false;$('win-title').textContent=area?'All 5 monsters caught!':'All 5 laps solved!';$('win-copy').textContent=area?'Brilliant net measuring.':'Brilliant perimeter practice.';$('again').focus();};
+$('restart').onclick=()=>{cancel();phase='intro';$('play').hidden=true;$('victory').hidden=true;$('intro').hidden=false;$('restart').hidden=true;$('start').focus();};

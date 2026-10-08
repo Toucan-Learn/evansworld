@@ -13,13 +13,15 @@ import {
 } from "../components/sky-presets";
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
+const gameNames: Record<string,string> = {"bag-bashers":"Bag Bashers","snakes-ladders":"Snakes & Ladders","monster-nets":"Monster Nets","perimeter-racers":"Perimeter Racers"};
+const linkedGame = () => Object.hasOwn(gameNames,location.hash.slice(1)) ? location.hash.slice(1) : null;
 function App() {
-  const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : ['#games','#snakes-ladders'].includes(location.hash) ? 'games' : 'home');
-  const [selectedGame, setSelectedGame] = useState(location.hash === "#snakes-ladders" ? "snakes-ladders" : "bag-bashers");
-  const [playing, setPlaying] = useState(location.hash === "#snakes-ladders");
+  const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : (location.hash === '#games' || linkedGame() !== null) ? 'games' : 'home');
+  const [selectedGame, setSelectedGame] = useState(linkedGame() || "bag-bashers");
+  const [playing, setPlaying] = useState(linkedGame() !== null);
   const [gameLoaded, setGameLoaded] = useState(false);
   useEffect(() => {
-    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : ['#games','#snakes-ladders'].includes(location.hash) ? 'games' : 'home');setPlaying(location.hash === '#snakes-ladders');if(location.hash === '#snakes-ladders'){setSelectedGame('snakes-ladders');setGameLoaded(false);}};
+    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : (location.hash === '#games' || linkedGame() !== null) ? 'games' : 'home');setPlaying(linkedGame() !== null);if(linkedGame()){setSelectedGame(linkedGame()!);setGameLoaded(false);}};
     addEventListener('hashchange', navigate);
     return () => removeEventListener('hashchange', navigate);
   }, []);
@@ -101,7 +103,7 @@ function App() {
     } catch {}
     return () => life.abort();
   }, []);
-  const gameTitle = selectedGame === "bag-bashers" ? "Bag Bashers" : "Snakes & Ladders";
+  const gameTitle = gameNames[selectedGame];
   const gameURL = `${import.meta.env.BASE_URL}games/${selectedGame}/index.html`;
   const activePreset = page === 'rocket' ? 'rocket' : preset;
   const classicSky = activePreset === 'earth' || activePreset === 'pixel';
@@ -179,6 +181,7 @@ function App() {
           <button className="game-choice" onClick={() => { setSelectedGame("snakes-ladders"); setGameLoaded(false); setPlaying(true); }}>
             <span className="game-icon" aria-hidden="true">🎲</span><span className="game-name">Snakes &amp; Ladders</span><span className="game-play">Play →</span>
           </button>
+          {[['monster-nets','👾'],['perimeter-racers','🏃']].map(([id,icon])=><button key={id} className="game-choice" onClick={() => {setSelectedGame(id);setGameLoaded(false);setPlaying(true);}}><span className="game-icon" aria-hidden="true">{icon}</span><span className="game-name">{gameNames[id]}</span><span className="game-play">Play →</span></button>)}
         </>}
       </section>}
       <div className="sky-tools" aria-label="Sky controls">
