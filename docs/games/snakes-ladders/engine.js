@@ -1,3 +1,4 @@
+export const DICE_SIDES = 10;
 export const LADDERS = { 3: 22, 8: 30, 20: 41, 36: 57, 50: 69, 71: 92 };
 export const SNAKES = { 27: 10, 47: 25, 65: 44, 86: 63, 97: 78 };
 export function newGame(players = 1) {
@@ -5,7 +6,7 @@ export function newGame(players = 1) {
 }
 export function roll(state, random = Math.random) {
   if (state.dice || state.winner !== null) return state;
-  return { ...state, dice: [1 + Math.floor(random() * 6), 1 + Math.floor(random() * 6)] };
+  return { ...state, dice: [1 + Math.floor(random() * DICE_SIDES), 1 + Math.floor(random() * DICE_SIDES)] };
 }
 export function answer(state, value) {
   if (!state.dice || state.winner !== null) return { state, correct: false };
