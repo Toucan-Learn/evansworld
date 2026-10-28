@@ -1,7 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { Radio } from "../components/radio";
 import { Sparkles, Palette, Moon, Sun } from "lucide-react";
 import { PlaySkies } from "../components/play-skies";
 import { Galaxy } from "../components/galaxy";
@@ -200,7 +199,6 @@ function App() {
           <span>{activePreset === "drawing" ? "Mega wave" : activePreset === "sand" ? "Smooth sand" : activePreset === "water" ? "Splash" : "Star burst"}</span>
         </button>
       </div>
-      <Radio />
       <p className="quiet-label">YOUR CORNER OF THE COSMOS</p>
     </main>
   );

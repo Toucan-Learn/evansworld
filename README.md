@@ -1,6 +1,6 @@
 # Evansworld
 
-Evan’s Universe: an interactive pixel-galaxy homepage with a Masayoshi Takanaka radio.
+Evan’s Universe: an interactive pixel-galaxy homepage with games.
 
 ## Play
 
@@ -8,21 +8,23 @@ The default sky uses ocean blue, sea green and sunlit sand colours. Move a mouse
 
 Use the **Sky** selector to choose **Earth sky** (the animated background) or **Pixel sky** (the exact pixel artwork and colour treatment shown during loading). Both support swashes, overlapping ripples and Calm mode. The original loading artwork is preserved in `assets/loading-pixel-sky.png`; its hash and colour recipe are recorded in `assets/LOADING-SKY-PRESET.md`.
 
-The radio has 38 tracks, a track selector, previous/next buttons, play/pause and volume. Music begins only after a user action. The volume and sky-preset preferences are saved locally in the browser.
+The sky-preset preference is saved locally in the browser.
 
-The homepage fits the current viewport without scrolling. The layout keeps the sky controls and radio visible, rearranges them for phones in landscape, and reduces decorative text on short screens. Every ripple travels through the farthest corner before fading; its lifetime follows the viewport size and the point where it began.
+The homepage fits the current viewport without scrolling. The layout keeps the sky controls visible, adapts for phones in landscape, and reduces decorative text on short screens. Every ripple travels through the farthest corner before fading; its lifetime follows the viewport size and the point where it began.
 
 **Evan’s drawing** has directional swashes and its own extreme, elastic rings: a broad wobbling wavefront stretches and folds the artwork, then pulls it back. Move the mouse or a finger to bend the artwork, click/tap or press **Mega wave** for overlapping rings, or focus the drawing and use the arrow keys and Space. The original image, colours and centred framing are retained; Calm mode restores the still artwork. Pixel sky keeps its gentler waves. Both presets distort the actual image in the software fallback when WebGL is unavailable.
 
 ## Development
 
-Requires Node.js 22.13 or newer and pnpm. The complete 38-track web audio bank is included.
+Requires Node.js 22.13 or newer and pnpm.
 
 1. Run `pnpm install --frozen-lockfile`.
 2. Run `pnpm dev` to preview, or `pnpm build:pages` to build the live site.
 3. Commit the updated source and generated `docs/` output together, then push `main`.
 
-Run `pnpm test` to check overlapping burst lifetimes and rapid input. The build verifies every audio file against its pinned hash before compiling and checks the published copies again. To audit codec/duration details, run `python3 scripts/verify-assets.py` with ffprobe installed. The optional `scripts/prepare-music.py` can reproduce the bank from the separately managed game inputs.
+Run `pnpm test` to check the games, overlapping burst lifetimes and rapid input. `pnpm build` runs the TypeScript check and production build; `pnpm build:pages` also regenerates `docs/`.
+
+For browser QA, run `PLAYWRIGHT_MODULE="$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs" node scripts/check-layout.mjs` with a working Chrome or Playwright browser. This checks the generated site at 1440×750, 390×844 and 844×390 in light and dark modes, saves screenshots in a temporary folder, and blocks external requests. It checks control visibility, game launchers, sky persistence and silent sky interactions. The existing Google Fonts import and inline game code predate this update; strict CSP compatibility remains unresolved.
 
 ## Logo
 
@@ -30,9 +32,7 @@ The Mike Tyson pixel portrait is the site brand mark and favicon. The transparen
 
 ## Sources
 
-The original repository README was the starting point. The working homepage comes from the isolated Evan draft created for this project. Harry Baker Media’s existing galaxy shader, noise, fallback image and radio character were reused. Their original galaxy attribution is preserved in `assets/GALAXY-SOURCE.md`. No other learner’s writing or records are included.
-
-`data/music-provenance.json` records the FLAME Masayoshi input hashes and the 128 kbps MP3 output hashes. The existing musical treatment and track cuts are preserved. Audio source files and public release rights are managed separately.
+The original repository README was the starting point. The working homepage comes from the isolated draft created for this project. The existing galaxy shader, noise and fallback image were reused. Original galaxy attribution is preserved in `assets/GALAXY-SOURCE.md`. No other learner’s writing or records are included.
 
 ## Hosting and checks
 
@@ -40,7 +40,7 @@ The active repository is `Toucan-Learn/evansworld`. GitHub Pages serves the gene
 
 Account-specific Sites configuration remains local and is not part of this GitHub Pages release.
 
-TypeScript compilation, the production build, audio hashes, stereo MP3 codecs and all track durations have been checked. Browser interaction and visual QA have not been performed. The optional `configure_galaxy` WebMCP tool is feature-detected; a supported validation context was unavailable.
+The optional `configure_galaxy` WebMCP tool is feature-detected; a supported validation context was unavailable.
 
 ## Games
 

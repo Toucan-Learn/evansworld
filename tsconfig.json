@@ -22,7 +22,6 @@
   "include": [
     "src",
     "components",
-    "data",
     "vite.config.ts"
   ]
 }

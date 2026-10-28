@@ -22,6 +22,6 @@ The original readability shade remains above the background:
 background: linear-gradient(90deg, #07313e66, transparent 65%);
 ```
 
-The pixel composition stays still. Swashes and full-screen ripples use a transparent effects canvas above it. Selecting **Earth sky** restores the animated renderer. Both presets share the existing interactions and radio; the browser saves the selected preset locally.
+The pixel composition stays still. Swashes and full-screen ripples use a transparent effects canvas above it. Selecting **Earth sky** restores the animated renderer. Both presets share the existing interactions; the browser saves the selected preset locally.
 
 Original image provenance and attribution are in `GALAXY-SOURCE.md`.
