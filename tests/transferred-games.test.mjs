@@ -20,7 +20,7 @@ function game(name, stored=new Map()) {
   const env={document:doc,localStorage:{getItem:k=>stored.get(k)??null,setItem:(k,v)=>stored.set(k,v)},performance:{now:()=>10000},requestAnimationFrame:()=>1,cancelAnimationFrame(){},ResizeObserver:class{observe(){}},MutationObserver:class{observe(){}},getComputedStyle:()=>({color:'#fff'}),console};
   env.window={innerHeight:900,addEventListener(){},matchMedia:()=>({matches:true})};
   vm.createContext(env);
-  const additions=name==='viking-chase'?`globalThis.api={snapshot:()=>({mode,lives,grown,wrong,points,asked,monk,vikings,dots:[...dots],fruit:[...fruit],questionOrder,questions,wish}),play,cont,answers,save,choose,walk,map,step,playerMove,collide,init,eatFruit:()=>{fruit.delete([...fruit][0]);openQuiz()}};`:`globalThis.api={snapshot:()=>({order,index,eaten,solved,busy,options}),next,again,eat,menu,save,restore};`;
+  const additions=name==='viking-chase'?`globalThis.api={snapshot:()=>({mode,lives,grown,wrong,points,asked,monk,vikings,dots:[...dots],fruit:[...fruit],questionOrder,questions,wish}),play,cont,answers,save,choose,walk,map,step,playerMove,collide,init,eatFruit:()=>{fruit.delete([...fruit][0]);openQuiz()}};`:`globalThis.api={snapshot:()=>({table,order,index,eaten,solved,busy,options}),next,again,eat,menu,save,restore,startTable,target,tables,picker,root,resume,change};`;
   const source=fs.readFileSync(new URL('../public/games/'+name+'/game.js',import.meta.url),'utf8').replace(/\}\)\(\);\s*$/,additions+'})();');
   vm.runInContext(source,env);return {api:env.api,stored};
 }
@@ -58,4 +58,21 @@ test('Burger Boom wrong answers reset growth and reject corrupt saves',async()=>
   const {api}=game('burger-boom');let s=api.snapshot();await api.eat(s.order[0],api.menu.children[0]);api.next.click();s=api.snapshot();await api.eat(s.order[1]===1?2:1,api.menu.children[0]);
   assert.equal(api.snapshot().eaten,0);assert.equal(api.snapshot().index,0);assert.equal(api.snapshot().busy,false);
   assert.equal(api.restore({privateContent:{version:2,order:[]}}),false);
+});
+
+
+test('Burger table picker offers 1–12 and uses the selected table for every round',async()=>{
+ const {api,stored}=game('burger-boom');assert.equal(api.tables.children.length,12);
+ for(let table=1;table<=12;table++){
+  api.startTable(table);let s=api.snapshot();assert.equal(s.table,table);assert.equal(s.eaten,0);assert.equal(api.picker.hidden,true);
+  for(let round=0;round<12;round++){
+   s=api.snapshot();assert.equal(api.target.textContent,'Eat the burger that makes '+s.order[round]*table);
+   assert.ok(api.menu.children.every(b=>b.innerHTML.includes('<span>'+table+' × ')));
+   await api.eat(s.order[round],api.menu.children[0]);if(round<11)api.next.click();
+  }
+  assert.equal(api.snapshot().eaten,12);
+ }
+ const restored=game('burger-boom',stored).api;assert.equal(restored.snapshot().table,12);assert.equal(restored.snapshot().eaten,12);assert.equal(restored.resume.hidden,false);
+ restored.startTable(7);assert.equal(restored.snapshot().eaten,0);assert.equal(restored.snapshot().table,7);
+ assert.equal(restored.restore({privateContent:{version:3,table:13}}),false);
 });
