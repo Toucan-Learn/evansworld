@@ -104,6 +104,7 @@ function App() {
     return () => life.abort();
   }, []);
   const gameTitle = gameNames[selectedGame];
+  const gameVersion = ["maze-tag","word-rush"].includes(selectedGame) ? "8" : "5";
   const gameURL = `${import.meta.env.BASE_URL}games/${selectedGame}/index.html`;
   const activePreset = page === 'rocket' ? 'rocket' : preset;
   const classicSky = activePreset === 'earth' || activePreset === 'pixel';
@@ -160,12 +161,12 @@ function App() {
           <div className="game-toolbar">
             <button onClick={() => setPlaying(false)}>← Games</button>
             <h1>{gameTitle}</h1>
-            <a className="open-game-link" href={`${gameURL}?v=5`} target="_blank" rel="noopener">Open game ↗</a>
+            <a className="open-game-link" href={`${gameURL}?v=${gameVersion}`} target="_blank" rel="noopener">Open game ↗</a>
           </div>
           {!gameLoaded && <p className="game-loading" role="status">Loading game…</p>}
           <iframe
             className="game-frame"
-            src={`${gameURL}?embed=1&v=5`}
+            src={`${gameURL}?embed=1&v=${gameVersion}`}
             title={gameTitle}
             allow="fullscreen"
             allowFullScreen
