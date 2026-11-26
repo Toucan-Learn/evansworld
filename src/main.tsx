@@ -12,7 +12,7 @@ import {
 } from "../components/sky-presets";
 import "./style.css";
 const brandLogo = new URL("../assets/evan-tyson-logo-v1.png", import.meta.url).href;
-const gameNames: Record<string,string> = {"bag-bashers":"Bag Bashers","snakes-ladders":"Snakes & Ladders","monster-nets":"Monster Nets","perimeter-racers":"Perimeter Racers","infinite-tower":"Infinite Tower","viking-chase":"Viking Chase","burger-boom":"Burger Boom","rocket-dodge":"Rocket Dodge","word-rush":"Word Rush"};
+const gameNames: Record<string,string> = {"bag-bashers":"Bag Bashers","snakes-ladders":"Snakes & Ladders","monster-nets":"Monster Nets","perimeter-racers":"Perimeter Racers","infinite-tower":"Infinite Tower","viking-chase":"Viking Chase","burger-boom":"Burger Boom","rocket-dodge":"Rocket Dodge","word-rush":"Word Rush","maze-tag":"Maze Tag"};
 const linkedGame = () => Object.hasOwn(gameNames,location.hash.slice(1)) ? location.hash.slice(1) : null;
 function App() {
   const [page, setPage] = useState(() => location.hash === '#rocket' ? 'rocket' : (location.hash === '#games' || linkedGame() !== null) ? 'games' : 'home');
@@ -181,7 +181,7 @@ function App() {
           <button className="game-choice" onClick={() => { setSelectedGame("snakes-ladders"); setGameLoaded(false); setPlaying(true); }}>
             <span className="game-icon" aria-hidden="true">🎲</span><span className="game-name">Snakes &amp; Ladders</span><span className="game-play">Play →</span>
           </button>
-          {[['word-rush','📚'],['rocket-dodge','🚀'],['viking-chase','⚔️'],['burger-boom','🍔'],['infinite-tower','🪽'],['monster-nets','👾'],['perimeter-racers','🏃']].map(([id,icon])=><button key={id} className="game-choice" onClick={() => {if(id==='rocket-dodge'){location.href=`${import.meta.env.BASE_URL}games/rocket-dodge/index.html`;return;}setSelectedGame(id);setGameLoaded(false);setPlaying(true);}}><span className="game-icon" aria-hidden="true">{icon}</span><span className="game-name">{gameNames[id]}</span><span className="game-play">Play →</span></button>)}
+          {[['maze-tag','🧭'],['word-rush','📚'],['rocket-dodge','🚀'],['viking-chase','⚔️'],['burger-boom','🍔'],['infinite-tower','🪽'],['monster-nets','👾'],['perimeter-racers','🏃']].map(([id,icon])=><button key={id} className="game-choice" onClick={() => {if(id==='rocket-dodge'){location.href=`${import.meta.env.BASE_URL}games/rocket-dodge/index.html`;return;}setSelectedGame(id);setGameLoaded(false);setPlaying(true);}}><span className="game-icon" aria-hidden="true">{icon}</span><span className="game-name">{gameNames[id]}</span><span className="game-play">Play →</span></button>)}
         </>}
       </section>}
       <div className="sky-tools" aria-label="Sky controls">
