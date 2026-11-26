@@ -1,4 +1,4 @@
-import {RocketGame,LEVELS,LEVEL_SECONDS} from './engine.js?v=3';
+import {RocketGame,LEVELS,LEVEL_SECONDS} from './engine.js?v=4';
 const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d'),arena=document.querySelector('#arena'),overlay=document.querySelector('#overlay'),title=document.querySelector('#title'),hint=document.querySelector('#hint'),play=document.querySelector('#play'),pause=document.querySelector('#pause'),notice=document.querySelector('#notice');
 const game=new RocketGame();let paused=false,last=performance.now(),particles=[],noticeTime=0,keys=new Set(),blast=null;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function resize(){const w=arena.clientWidth,h=arena.clientHeight,dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);game.resize(w,h);}new ResizeObserver(resize).observe(arena);resize();

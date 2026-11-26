@@ -15,3 +15,5 @@ Pause or Escape pauses. Leaving the browser window pauses automatically.
 All visuals are local Canvas drawings. No assets, accounts or network services
 are needed. `engine.js` contains gameplay, `game.js` drawing/input, and `style.css`
 the viewport-fitting layout. Unit coverage is in `tests/rocket-dodge.test.mjs`.
+
+Incoming hazard velocities are scaled to 80% for a gentler difficulty. Reflected shots retain full speed.

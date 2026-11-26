@@ -16,7 +16,8 @@ export class RocketGame{
  else if(level===0||level===4){const edge=Math.floor(r()*4);x=edge===0?-45:edge===1?w+45:r()*w;y=edge===2?-45:edge===3?h+45:r()*h;const aim=r()<.6;const tx=aim?this.rocket.x+(r()-.5)*20:r()*w,ty=aim?this.rocket.y+(r()-.5)*20:r()*h,dx=tx-x,dy=ty-y,len=Math.hypot(dx,dy)||1;const velocity=speed*(.8+r()*.7);vx=dx/len*velocity;vy=dy/len*velocity;}
  else if(level===3){x=30+r()*(w-60);y=-35;vx=level===3?(r()-.5)*60:0;vy=speed;}
  else {const side=r()<.5;x=side?-50:w+50;y=25+r()*Math.max(20,h*.65-25);const targetY=Math.min(h-25,y+80+r()*h*.3),targetX=side?w+50:-50,len=Math.hypot(targetX-x,targetY-y);vx=(targetX-x)/len*speed*(level===2?1.5:1);vy=(targetY-y)/len*speed*(level===2?1.5:1);}
- this.hazards.push({x,y,vx,vy,radius:level===1?17:level===3?22:5,angle:r()*6.28,reflected:false});}
+ // Incoming hazards are 20% slower; reflected shots keep their full speed.
+ this.hazards.push({x,y,vx:vx*.8,vy:vy*.8,radius:level===1?17:level===3?22:5,angle:r()*6.28,reflected:false});}
  update(dt){if(this.phase==='ready'||this.phase==='won'||this.phase==='lost')return;this.total+=dt;this.cooldown=Math.max(0,this.cooldown-dt);
  if(this.phase==='burst'){this.transition-=dt;if(this.transition<=0){this.phase='lost';this.events.push({type:'lost'});}return;}
  this.time+=dt;this.spawnIn-=dt;if(this.spawnIn<=0){this.spawn();this.spawnIn=this.level===5?.6:this.level===0||this.level===4?Math.max(.16,.26-this.time*.003):Math.max(.3,.65-this.time*.008);}
