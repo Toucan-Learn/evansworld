@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createSandTexture, createWaterSurface, type WaterRing } from './natural-surfaces';
+import { SHOOTING_STAR_COUNT, shootingStar, starHitsRocket } from './shooting-stars';
 import type { SkyPreset } from './sky-presets';
 
 type Spark = { x: number; y: number; vx: number; vy: number; life: number; hue: number };
@@ -14,6 +15,8 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
     let width = 1, height = 1, frame = 0, last = 0, time = 0, lastBurst = burst;
     let x = innerWidth * .6, y = innerHeight * .55, angle = -.5, visible = false;
     let sparks: Spark[] = [];
+    let explosion: { x: number; y: number; born: number } | null = null;
+    let safeUntil = 0;
     const grooves: { x: number; y: number; start: boolean }[] = [];
     let newStroke = true;
     let sandTexture: HTMLCanvasElement | null = null;
@@ -65,6 +68,7 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
       frame = requestAnimationFrame(draw);
       if (document.hidden || now - last < 1000 / 30) return;
       const dt = Math.min((now - last) / 1000, .05); last = now;
+      const previousTime = time;
       if (!settings.current.calm) time += dt;
       if (settings.current.burst !== lastBurst) { lastBurst = settings.current.burst; grooves.length = 0; if (!settings.current.calm) emit(70); }
       const gradient = ctx.createLinearGradient(0, 0, width, height);
@@ -99,12 +103,19 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
           for (let light = -1; light <= 1; light++) circle(light * 17, 2, 2.5, '#f7efb5');
           ctx.restore();
         }
-        for (let i = 0; i < 3; i++) {
-          const phase = (time + i * 1.8 + .8) % 5.4;
-          if (phase > 3.2) continue;
-          const progress = phase / 3.2;
-          const sx = -110 + progress * (width + 280);
-          const sy = height * (.25 + i * .14) + progress * height * .28;
+        for (let i = 0; i < SHOOTING_STAR_COUNT; i++) {
+          const star = shootingStar(time, i, width, height);
+          if (!star) continue;
+          const sx = star.x, sy = star.y;
+          if (visible && !settings.current.calm && time >= safeUntil && starHitsRocket(shootingStar(previousTime, i, width, height), star, x, y)) {
+            explosion = { x, y, born: time };
+            safeUntil = time + 2.5;
+            for (let j = 0; j < 65; j++) {
+              const direction = Math.random() * Math.PI * 2, speed = 60 + Math.random() * 210;
+              sparks.push({ x, y, vx: Math.cos(direction) * speed, vy: Math.sin(direction) * speed, life: 1, hue: 20 + Math.random() * 35 });
+            }
+            sparks = sparks.slice(-240);
+          }
           const trail = ctx.createLinearGradient(sx - 145, sy - 28, sx, sy);
           trail.addColorStop(0, '#a7caff00'); trail.addColorStop(1, '#eaf7ffff');
           ctx.strokeStyle = trail; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx - 145, sy - 28); ctx.lineTo(sx, sy); ctx.stroke();
@@ -121,7 +132,14 @@ export function PlaySkies({ preset, calm, colour, burst }: { preset: SkyPreset; 
           ctx.beginPath(); ctx.arc(p.x, p.y, 4 + (1 - p.life) * 65, 0, Math.PI * 2); ctx.strokeStyle = `rgba(170,235,255,${p.life * .3})`; ctx.lineWidth = 1.5; ctx.stroke();
         } else circle(p.x, p.y, preset === 'sand' ? .5 + p.life * .7 : 2 + p.life * 4, preset === 'sand' ? `rgba(255,221,158,${p.life})` : `hsla(${p.hue},90%,75%,${p.life * .7})`);
       }
-      if (preset === 'rocket' && visible) {
+      if (explosion) {
+        const age = time - explosion.born;
+        if (age < 1) {
+          ctx.beginPath(); ctx.arc(explosion.x, explosion.y, 15 + age * 100, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,193,106,${(1 - age) * .8})`; ctx.lineWidth = 5 * (1 - age); ctx.stroke();
+        } else explosion = null;
+      }
+      if (preset === 'rocket' && visible && !explosion) {
         ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
         ctx.fillStyle = '#ffb85b'; ctx.beginPath(); ctx.moveTo(-19, -7); ctx.lineTo(-35 - (settings.current.calm ? 0 : Math.sin(time * 12) * 5), 0); ctx.lineTo(-19, 7); ctx.fill();
         ctx.fillStyle = '#f07188'; ctx.beginPath(); ctx.moveTo(-14, -8); ctx.lineTo(-23, -18); ctx.lineTo(-20, 18); ctx.lineTo(-14, 8); ctx.fill();
