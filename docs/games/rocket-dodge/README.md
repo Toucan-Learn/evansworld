@@ -5,7 +5,7 @@ page, and the legacy #rocket-dodge link redirects here. Back to Games returns to
 the website. Survive 30 seconds in each of the first four stages to advance:
 stars, burgers, lasers, handheld consoles, the ghost wave, then a giant block ghost. A hit bursts
 the rocket and offers Retry; retry restarts the current stage's timer. Pausing
-freezes the timer. Star stages launch roughly four to six stars per second from all four edges, with varied speeds and angles. Some shots aim at the rocket’s position when launched, so standing still is unsafe.
+freezes the timer. Star stages launch roughly three to four stars per second from all four edges, with varied speeds and angles. Some shots aim at the rocket’s position when launched, so standing still is unsafe.
 In stage five, the shield reflects stars toward the nearest living ghost.
 Reflected stars must physically hit their targets; clearing six ghosts unlocks the giant ghost. Each reflected laser destroys exactly one block; destroying every block wins.
 The countdown shows the remaining survival time.
@@ -17,3 +17,5 @@ are needed. `engine.js` contains gameplay, `game.js` drawing/input, and `style.c
 the viewport-fitting layout. Unit coverage is in `tests/rocket-dodge.test.mjs`.
 
 Incoming hazard velocities are scaled to 80% for a gentler difficulty. Reflected shots retain full speed.
+
+All incoming hazard spawn rates are reduced by 30% (intervals divided by 0.7).

@@ -20,7 +20,7 @@ export class RocketGame{
  this.hazards.push({x,y,vx:vx*.8,vy:vy*.8,radius:level===1?17:level===3?22:5,angle:r()*6.28,reflected:false});}
  update(dt){if(this.phase==='ready'||this.phase==='won'||this.phase==='lost')return;this.total+=dt;this.cooldown=Math.max(0,this.cooldown-dt);
  if(this.phase==='burst'){this.transition-=dt;if(this.transition<=0){this.phase='lost';this.events.push({type:'lost'});}return;}
- this.time+=dt;this.spawnIn-=dt;if(this.spawnIn<=0){this.spawn();this.spawnIn=this.level===5?.6:this.level===0||this.level===4?Math.max(.16,.26-this.time*.003):Math.max(.3,.65-this.time*.008);}
+ this.time+=dt;this.spawnIn-=dt;if(this.spawnIn<=0){this.spawn();this.spawnIn=(this.level===5?.6:this.level===0||this.level===4?Math.max(.16,.26-this.time*.003):Math.max(.3,.65-this.time*.008))/.7;}
  for(const g of this.ghosts){g.x=this.width*(.16+(g.id%3)*.34)+Math.sin(this.time*.65+g.id)*Math.min(30,this.width*.04);}
  for(const b of this.hazards){if(b.dead)continue;const ax=b.x,ay=b.y;b.x+=b.vx*dt;b.y+=b.vy*dt;b.angle+=dt;
  if(b.reflected&&this.level===5){for(const block of this.blocks){if(!block.alive)continue;const p=this.blockPosition(block);if(sweptHit(ax,ay,b.x,b.y,p.x,p.y,p.size*.5+3)){block.alive=false;b.dead=true;this.events.push({type:'block',x:p.x,y:p.y});break;}}}
