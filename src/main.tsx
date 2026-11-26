@@ -104,7 +104,7 @@ function App() {
     return () => life.abort();
   }, []);
   const gameTitle = gameNames[selectedGame];
-  const gameVersion = ["maze-tag","word-rush"].includes(selectedGame) ? "8" : "5";
+  const gameVersion = selectedGame === "word-rush" ? "ipad-2" : selectedGame === "maze-tag" ? "8" : "5";
   const gameURL = `${import.meta.env.BASE_URL}games/${selectedGame}/index.html`;
   const activePreset = page === 'rocket' ? 'rocket' : preset;
   const classicSky = activePreset === 'earth' || activePreset === 'pixel';
