@@ -1,12 +1,14 @@
 # Rocket Dodge
 
-Five-stage mouse / touch / keyboard mini-game. The rocket uses the same shape
-as the website's Rocket flight background. Each hit bursts the rocket, clears
-the screen and advances the hazard theme: stars, burgers, lasers, handheld
-consoles, then the ghost finale. Brief protection follows each transition.
+Standalone five-stage mouse / touch / keyboard mini-game. Games launches the full
+page, and the legacy #rocket-dodge link redirects here. Back to Games returns to
+the website. Survive 30 seconds in each of the first four stages to advance:
+stars, burgers, lasers, handheld consoles, then the ghost finale. A hit bursts
+the rocket and offers Retry; retry restarts the current stage's timer. Pausing
+freezes the timer. Star stages launch roughly four to six stars per second.
 In the final stage, the shield reflects stars toward the nearest living ghost.
 Reflected stars must physically hit their targets; all six ghosts cleared wins.
-The dodge counter rewards avoiding hazards during the first four stages.
+The countdown shows the remaining survival time.
 
 Mouse movement or touch dragging controls the ship; arrow keys / WASD also work.
 Pause or Escape pauses. Leaving the browser window pauses automatically.

@@ -20,7 +20,8 @@ function App() {
   const [playing, setPlaying] = useState(linkedGame() !== null);
   const [gameLoaded, setGameLoaded] = useState(false);
   useEffect(() => {
-    const navigate = () => {setPage(location.hash === '#rocket' ? 'rocket' : (location.hash === '#games' || linkedGame() !== null) ? 'games' : 'home');setPlaying(linkedGame() !== null);if(linkedGame()){setSelectedGame(linkedGame()!);setGameLoaded(false);}};
+    const navigate = () => {if(linkedGame()==='rocket-dodge'){location.replace(`${import.meta.env.BASE_URL}games/rocket-dodge/index.html`);return;}setPage(location.hash === '#rocket' ? 'rocket' : (location.hash === '#games' || linkedGame() !== null) ? 'games' : 'home');setPlaying(linkedGame() !== null);if(linkedGame()){setSelectedGame(linkedGame()!);setGameLoaded(false);}};
+    if(linkedGame()==='rocket-dodge') navigate();
     addEventListener('hashchange', navigate);
     return () => removeEventListener('hashchange', navigate);
   }, []);
@@ -180,7 +181,7 @@ function App() {
           <button className="game-choice" onClick={() => { setSelectedGame("snakes-ladders"); setGameLoaded(false); setPlaying(true); }}>
             <span className="game-icon" aria-hidden="true">🎲</span><span className="game-name">Snakes &amp; Ladders</span><span className="game-play">Play →</span>
           </button>
-          {[['rocket-dodge','🚀'],['viking-chase','⚔️'],['burger-boom','🍔'],['infinite-tower','🪽'],['monster-nets','👾'],['perimeter-racers','🏃']].map(([id,icon])=><button key={id} className="game-choice" onClick={() => {setSelectedGame(id);setGameLoaded(false);setPlaying(true);}}><span className="game-icon" aria-hidden="true">{icon}</span><span className="game-name">{gameNames[id]}</span><span className="game-play">Play →</span></button>)}
+          {[['rocket-dodge','🚀'],['viking-chase','⚔️'],['burger-boom','🍔'],['infinite-tower','🪽'],['monster-nets','👾'],['perimeter-racers','🏃']].map(([id,icon])=><button key={id} className="game-choice" onClick={() => {if(id==='rocket-dodge'){location.href=`${import.meta.env.BASE_URL}games/rocket-dodge/index.html`;return;}setSelectedGame(id);setGameLoaded(false);setPlaying(true);}}><span className="game-icon" aria-hidden="true">{icon}</span><span className="game-name">{gameNames[id]}</span><span className="game-play">Play →</span></button>)}
         </>}
       </section>}
       <div className="sky-tools" aria-label="Sky controls">
