@@ -66,3 +66,18 @@ test('exactly three optional little chickens in every chicken level',()=>{for(le
 test('little chickens take five punches even with max strength',()=>{run("startGame(true);strength=50;gloveLevel=5;player.x=littleChickens[0].x;bags=[];");for(let i=0;i<4;i++)run('punchTimer=0;doPunch()');assert.equal(run('littleChickens[0].hits'),1);run('punchTimer=0;doPunch()');assert.equal(run('littleChickens[0].hits'),0);});
 test('little chicken pecks are telegraphed and jumpable',()=>{run("startGame(true);player.x=littleChickens[0].x;updateLittleChickens(.01)");assert.equal(run('health'),100);assert.equal(run('littleChickens[0].st'),'warning');run('updateLittleChickens(.41)');assert.equal(run('health'),86);run("health=100;littleChickens[0].st='warning';littleChickens[0].t=0;player.y=GROUND-110;updateLittleChickens(.01)");assert.equal(run('health'),100);});
 test('leaving a level does not require defeating little chickens',()=>{run("startGame(true);player.x=portalOut.x;update(.016)");assert.equal(run('state'),'shop');assert.equal(run('littleChickens.filter(c=>c.hits===5).length'),3);});
+
+test('Mike Tyson punches hit on the ground but miss above his glove',()=>{
+ run("startGame();level=5;buildLevel(5);bags=[];plats=[];state='play';player.x=tyson.x;health=100;regenTimer=9;tyson.st='punch';tyson.t=.16;tyson.hitDone=false;update(.016)");
+ assert.ok(run('health')<100);
+ run("health=100;player.x=tyson.x;player.y=GROUND-110;player.vy=0;tyson.st='punch';tyson.t=.16;tyson.hitDone=false;update(.016)");
+ assert.equal(run('health'),100);assert.equal(run('tyson.hitDone'),false);
+});
+test('a full jump can cross Mike Tyson without taking punch damage',()=>{
+ run("startGame();level=5;buildLevel(5);bags=[];plats=[];state='play';player.x=tyson.x-68;player.onGround=true;health=100;regenTimer=9;input.right=true;jumpQueued=true;tyson.st='windup';tyson.t=.42;");
+ for(let i=0;i<47;i++)run("update(.016)");
+ assert.ok(run('player.x>tyson.x+66'));assert.equal(run('health'),100);run('input.right=false');
+});
+test('punching while safely above Tyson cannot cause chip damage',()=>{
+ run("startGame();level=5;buildLevel(5);bags=[];state='play';player.x=tyson.x;player.y=GROUND-110;health=100;punchTimer=0;doPunch()");assert.equal(run('health'),100);assert.equal(run('tyson.hp'),run('tyson.maxHp'));
+});

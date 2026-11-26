@@ -1,0 +1,11 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {RocketGame,sweptHit,LEVELS} from '../public/games/rocket-dodge/engine.js';
+const hit=g=>{g.cooldown=0;g.hazards=[{x:g.rocket.x,y:g.rocket.y,vx:0,vy:0,radius:5,reflected:false}];g.update(.016);};
+test('hits change the four hazards in order and unlock the ghost finale',()=>{const g=new RocketGame(900,600,()=>.5);g.start();for(let level=0;level<4;level++){assert.equal(g.level,level);hit(g);assert.equal(g.phase,'burst');assert.equal(g.hazards.length,0);g.update(1.1);assert.equal(g.level,level+1);assert.equal(g.phase,'playing');assert.ok(g.cooldown>0);}assert.equal(g.ghosts.length,6);assert.equal(LEVELS[g.level],'Ghost bounce');});
+test('spawn protection avoids consecutive hits and movement stays inside the arena',()=>{const g=new RocketGame();g.start();g.move(-200,9000);assert.equal(g.rocket.x,24);assert.equal(g.rocket.y,576);g.hazards=[{...g.rocket,vx:0,vy:0,radius:22}];g.update(.016);assert.equal(g.phase,'playing');assert.equal(g.level,0);});
+test('final shield reflects stars and reflected stars clear ghosts to win',()=>{const g=new RocketGame();g.start();for(let i=0;i<4;i++)g.nextLevel();g.move(450,450);hit(g);assert.equal(g.phase,'playing');assert.equal(g.hazards[0].reflected,true);assert.ok(g.hazards[0].vy<0);assert.equal(g.level,4);
+ for(const ghost of g.ghosts){const x=g.width*(.16+(ghost.id%3)*.34)+Math.sin((g.time+.016)*.65+ghost.id)*30;g.hazards=[{x,y:ghost.y,vx:0,vy:0,radius:5,reflected:true}];g.update(.016);assert.equal(ghost.alive,false);}
+ assert.equal(g.phase,'won');g.start();assert.equal(g.level,0);assert.equal(g.ghosts.length,0);assert.equal(g.dodged,0);
+});
+test('fast shots cannot tunnel through the rocket or ghosts',()=>{assert.equal(sweptHit(0,200,800,200,400,200,20),true);assert.equal(sweptHit(0,200,800,200,400,250,20),false);});
+test('each hazard starts outside the arena and Nintendo hazards fall downwards',()=>{for(let level=0;level<5;level++){const g=new RocketGame();g.level=level;g.spawn();const b=g.hazards[0];assert.ok(b.x<0||b.x>g.width||b.y<0);assert.ok(b.vy>0);}});

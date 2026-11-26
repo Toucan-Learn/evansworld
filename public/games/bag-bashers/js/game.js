@@ -151,7 +151,7 @@ function buildBoss(){
 // ---------------- punching ----------------
 function doPunch(){
   if(state!=='play'||!running||punchTimer>0) return;
-  if(tyson && Math.abs(player.x-tyson.x)<tyson.reach+8 && (!tyson.chicken || Math.abs(player.y-(GROUND-65))<86)){
+  if(tyson && Math.abs(player.x-tyson.x)<tyson.reach+8 && (tyson.chicken ? Math.abs(player.y-(GROUND-65))<86 : player.y+player.h/2>GROUND-64 && player.y-player.h/2<GROUND)){
     punchTimer=tyson&&tyson.chicken?.24:CONFIG.punchCooldown; regenTimer=Math.max(regenTimer,CONFIG.regenDelay);
     health-=CONFIG.chipPerPunch; tyson.hp-=damagePerPunch(); tyson.hurt=0.12;
     beep(180+Math.random()*40,0.04); burst(tyson.x,GROUND-40,[COL.gold,COL.blood],6,140);
@@ -339,7 +339,7 @@ function update(dt){
       tyson.t-=dt; if(tyson.t<=0){ tyson.st='punch'; tyson.t=0.16; tyson.hitDone=false; }
     } else if(tyson.st==='punch'){
       tyson.t-=dt;
-      if(!tyson.hitDone && Math.abs(player.x-tyson.x)<tyson.reach+6){
+      if(!tyson.hitDone && Math.abs(player.x-tyson.x)<tyson.reach+6 && player.y+player.h/2>GROUND-44 && player.y-player.h/2<GROUND-30){
         health-=Math.max(5,CONFIG.tysonHitDamage-armorLevel*3); regenTimer=CONFIG.regenDelay; tyson.hitDone=true; shakeT=0.22; beep(70,0.15);
         if(health<=0) return die();
       }
